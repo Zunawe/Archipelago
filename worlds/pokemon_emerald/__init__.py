@@ -2,7 +2,6 @@
 Archipelago World definition for Pokemon Emerald Version
 """
 import copy
-import hashlib
 import os
 from typing import Set, List, Dict, Optional, Tuple, ClassVar
 
@@ -22,7 +21,7 @@ from .options import (Goal, ItemPoolType, RandomizeWildPokemon, RandomizeBadges,
                       RandomizeStarters, LevelUpMoves, RandomizeAbilities, RandomizeTypes, TmCompatibility,
                       HmCompatibility, RandomizeStaticEncounters, option_definitions)
 from .pokemon import get_random_species, get_random_move, get_random_damaging_move, get_random_type
-from .regions import create_regions
+from .regions import create_regions, shuffle_warps
 from .rom import PokemonEmeraldDeltaPatch, generate_output, location_visited_event_to_id_map
 from .rules import (set_default_rules, set_overworld_item_rules, set_hidden_item_rules, set_npc_gift_rules,
                     set_enable_ferry_rules, add_hidden_item_itemfinder_rules, add_flash_rules)
@@ -91,6 +90,11 @@ class PokemonEmeraldWorld(World):
     hm_shuffle_info: Optional[List[Tuple[PokemonEmeraldLocation, PokemonEmeraldItem]]] = None
     free_fly_location_id: int = 0
     modified_data: PokemonEmeraldData
+
+    def __init__(self, multiworld: MultiWorld, player: int):
+        super().__init__(multiworld, player)
+
+        self.modified_data = copy.deepcopy(emerald_data)
 
     @classmethod
     def stage_assert_generate(cls, multiworld: MultiWorld):
@@ -227,6 +231,8 @@ class PokemonEmeraldWorld(World):
 
         if self.multiworld.require_flash[self.player].value == Toggle.option_true:
             add_flash_rules(self.multiworld, self.player)
+
+        shuffle_warps(self.multiworld, self.player)
 
     def generate_basic(self):
         victory_event_name = "EVENT_DEFEAT_CHAMPION"
@@ -720,8 +726,6 @@ class PokemonEmeraldWorld(World):
                 for trainer_name, starter_position, is_evolved in rival_teams[i]:
                     trainer_data = self.modified_data.trainers[emerald_data.constants[trainer_name]]
                     trainer_data.party.pokemon[starter_position].species_id = picked_evolution if is_evolved else starter.species_id
-
-        self.modified_data = copy.deepcopy(emerald_data)
 
         # Randomize species data
         if self.multiworld.abilities[self.player].value != RandomizeAbilities.option_vanilla:
