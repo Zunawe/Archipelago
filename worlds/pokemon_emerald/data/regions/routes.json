@@ -435,12 +435,23 @@
     ],
     "events": [],
     "exits": [
+      "REGION_ROUTE111/TRAINER_HILL",
       "REGION_ROUTE111/SOUTH_POND",
       "REGION_ROUTE111/MIDDLE",
       "REGION_MAUVILLE_CITY/MAIN"
     ],
     "warps": [
-      "MAP_ROUTE111:0/MAP_ROUTE111_WINSTRATE_FAMILYS_HOUSE:0",
+      "MAP_ROUTE111:0/MAP_ROUTE111_WINSTRATE_FAMILYS_HOUSE:0"
+    ]
+  },
+  "REGION_ROUTE111/TRAINER_HILL": {
+    "parent_map": "MAP_ROUTE111",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ROUTE111/SOUTH"
+    ],
+    "warps": [
       "MAP_ROUTE111:4/MAP_TRAINER_HILL_ENTRANCE:0"
     ]
   },
@@ -614,8 +625,18 @@
     ],
     "events": [],
     "exits": [
+      "REGION_JAGGED_PASS/HIDEOUT_ENTRANCE",
       "REGION_JAGGED_PASS/TOP",
       "REGION_JAGGED_PASS/BOTTOM"
+    ],
+    "warps": []
+  },
+  "REGION_JAGGED_PASS/HIDEOUT_ENTRANCE": {
+    "parent_map": "MAP_JAGGED_PASS",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_JAGGED_PASS/MIDDLE"
     ],
     "warps": [
       "MAP_JAGGED_PASS:4/MAP_MAGMA_HIDEOUT_1F:0"
@@ -707,9 +728,21 @@
     "parent_map": "MAP_ROUTE114_FOSSIL_MANIACS_TUNNEL",
     "locations": [],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_ROUTE114_FOSSIL_MANIACS_TUNNEL/UNDERPASS_ENTRANCE"
+    ],
     "warps": [
-      "MAP_ROUTE114_FOSSIL_MANIACS_TUNNEL:0,1/MAP_ROUTE114_FOSSIL_MANIACS_HOUSE:2",
+      "MAP_ROUTE114_FOSSIL_MANIACS_TUNNEL:0,1/MAP_ROUTE114_FOSSIL_MANIACS_HOUSE:2"
+    ]
+  },
+  "REGION_ROUTE114_FOSSIL_MANIACS_TUNNEL/UNDERPASS_ENTRANCE": {
+    "parent_map": "MAP_ROUTE114_FOSSIL_MANIACS_TUNNEL",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ROUTE114_FOSSIL_MANIACS_TUNNEL/MAIN"
+    ],
+    "warps": [
       "MAP_ROUTE114_FOSSIL_MANIACS_TUNNEL:2/MAP_DESERT_UNDERPASS:0"
     ]
   },
@@ -1147,10 +1180,22 @@
     "parent_map": "MAP_ROUTE121_SAFARI_ZONE_ENTRANCE",
     "locations": [],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_ROUTE121_SAFARI_ZONE_ENTRANCE/PARK_ENTRANCE"
+    ],
     "warps": [
-      "MAP_ROUTE121_SAFARI_ZONE_ENTRANCE:0,1/MAP_SAFARI_ZONE_SOUTH:0",
       "MAP_ROUTE121_SAFARI_ZONE_ENTRANCE:2,3/MAP_ROUTE121:0"
+    ]
+  },
+  "REGION_ROUTE121_SAFARI_ZONE_ENTRANCE/PARK_ENTRANCE": {
+    "parent_map": "MAP_ROUTE121_SAFARI_ZONE_ENTRANCE",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ROUTE121_SAFARI_ZONE_ENTRANCE/MAIN"
+    ],
+    "warps": [
+      "MAP_ROUTE121_SAFARI_ZONE_ENTRANCE:0,1/MAP_SAFARI_ZONE_SOUTH:0"
     ]
   },
   "REGION_SAFARI_ZONE_NORTH/MAIN": {

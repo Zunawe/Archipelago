@@ -166,20 +166,12 @@ def set_default_rules(multiworld: MultiWorld, player: int):
     )
     if multiworld.norman_requirement[player].value == NormanRequirement.option_badges:
         set_rule(
-            multiworld.get_entrance("MAP_PETALBURG_CITY_GYM:2/MAP_PETALBURG_CITY_GYM:3", player),
-            lambda state: state.has_group("Badge", player, multiworld.norman_count[player].value)
-        )
-        set_rule(
-            multiworld.get_entrance("MAP_PETALBURG_CITY_GYM:5/MAP_PETALBURG_CITY_GYM:6", player),
+            multiworld.get_entrance("REGION_PETALBURG_CITY_GYM/ROOM_1 -> REGION_PETALBURG_CITY_GYM/ROOM_1_DOORS", player),
             lambda state: state.has_group("Badge", player, multiworld.norman_count[player].value)
         )
     else:
         set_rule(
-            multiworld.get_entrance("MAP_PETALBURG_CITY_GYM:2/MAP_PETALBURG_CITY_GYM:3", player),
-            lambda state: _defeated_n_gym_leaders(state, player, multiworld.norman_count[player].value)
-        )
-        set_rule(
-            multiworld.get_entrance("MAP_PETALBURG_CITY_GYM:5/MAP_PETALBURG_CITY_GYM:6", player),
+            multiworld.get_entrance("REGION_PETALBURG_CITY_GYM/ROOM_1 -> REGION_PETALBURG_CITY_GYM/ROOM_1_DOORS", player),
             lambda state: _defeated_n_gym_leaders(state, player, multiworld.norman_count[player].value)
         )
 
@@ -207,7 +199,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
 
     # Devon Corp
     set_rule(
-        multiworld.get_entrance("MAP_RUSTBORO_CITY_DEVON_CORP_1F:2/MAP_RUSTBORO_CITY_DEVON_CORP_2F:0", player),
+        multiworld.get_entrance("REGION_RUSTBORO_CITY_DEVON_CORP_1F/MAIN -> REGION_RUSTBORO_CITY_DEVON_CORP_1F/BEHIND_DOORMAN", player),
         lambda state: state.has("EVENT_RETURN_DEVON_GOODS", player)
     )
 
@@ -303,7 +295,23 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         lambda state: state.has("Letter", player)
     )
     set_rule(
-        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/LOWER -> REGION_GRANITE_CAVE_B1F/UPPER", player),
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/LOWER -> REGION_GRANITE_CAVE_B1F/UPPER_1", player),
+        lambda state: _can_use_mach_bike(state, player)
+    )
+    set_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_1 -> REGION_GRANITE_CAVE_B1F/UPPER_2", player),
+        lambda state: _can_use_mach_bike(state, player)
+    )
+    set_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_2 -> REGION_GRANITE_CAVE_B1F/UPPER_3", player),
+        lambda state: _can_use_mach_bike(state, player)
+    )
+    set_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_2 -> REGION_GRANITE_CAVE_B1F/UPPER_1", player),
+        lambda state: _can_use_mach_bike(state, player)
+    )
+    set_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_3 -> REGION_GRANITE_CAVE_B1F/UPPER_2", player),
         lambda state: _can_use_mach_bike(state, player)
     )
 
@@ -337,7 +345,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         lambda state: state.has("Devon Goods", player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_SLATEPORT_CITY:5,7/MAP_SLATEPORT_CITY_OCEANIC_MUSEUM_1F:0,1", player),
+        multiworld.get_entrance("REGION_SLATEPORT_CITY/MAIN -> REGION_SLATEPORT_CITY/MUSEUM_ENTRANCE", player),
         lambda state: state.has("EVENT_TALK_TO_DOCK", player)
     )
     set_rule(
@@ -400,7 +408,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         can_rock_smash
     )
     set_rule(
-        multiworld.get_entrance("MAP_ROUTE111:4/MAP_TRAINER_HILL_ENTRANCE:0", player),
+        multiworld.get_entrance("REGION_ROUTE111/SOUTH -> REGION_ROUTE111/TRAINER_HILL", player),
         lambda state: state.has("EVENT_DEFEAT_CHAMPION", player)
     )
 
@@ -431,7 +439,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         lambda state: can_surf(state) and can_waterfall(state)
     )
     set_rule(
-        multiworld.get_entrance("MAP_ROUTE114_FOSSIL_MANIACS_TUNNEL:2/MAP_DESERT_UNDERPASS:0", player),
+        multiworld.get_entrance("REGION_ROUTE114_FOSSIL_MANIACS_TUNNEL/MAIN -> REGION_ROUTE114_FOSSIL_MANIACS_TUNNEL/UNDERPASS_ENTRANCE", player),
         lambda state: state.has("EVENT_DEFEAT_CHAMPION", player)
     )
 
@@ -445,7 +453,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         can_surf
     )
     set_rule(
-        multiworld.get_entrance("MAP_METEOR_FALLS_1F_1R:5/MAP_METEOR_FALLS_STEVENS_CAVE:0", player),
+        multiworld.get_entrance("REGION_METEOR_FALLS_1F_1R/TOP -> REGION_METEOR_FALLS_1F_1R/TOP_CAVE_ENTRANCE", player),
         lambda state: state.has("EVENT_DEFEAT_CHAMPION", player)
     )
     set_rule(
@@ -475,7 +483,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         lambda state: _can_use_acro_bike(state, player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_JAGGED_PASS:4/MAP_MAGMA_HIDEOUT_1F:0", player),
+        multiworld.get_entrance("REGION_JAGGED_PASS/MIDDLE -> REGION_JAGGED_PASS/HIDEOUT_ENTRANCE", player),
         lambda state: state.has("Magma Emblem", player)
     )
 
@@ -517,29 +525,29 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         can_dive
     )
     set_rule(
-        multiworld.get_entrance("MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:0/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:0", player),
+        multiworld.get_entrance("REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN -> REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_1_DOOR", player),
         lambda state: state.has("Room 1 Key", player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:1/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:2", player),
+        multiworld.get_entrance("REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN -> REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_2_DOOR", player),
         lambda state: state.has("Room 2 Key", player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:3/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:6", player),
+        multiworld.get_entrance("REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN -> REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_4_DOOR", player),
         lambda state: state.has("Room 4 Key", player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:5/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:8", player),
+        multiworld.get_entrance("REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN -> REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_6_DOOR", player),
         lambda state: state.has("Room 6 Key", player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_ABANDONED_SHIP_CORRIDORS_B1F:5/MAP_ABANDONED_SHIP_ROOM_B1F:0", player),
+        multiworld.get_entrance("REGION_ABANDONED_SHIP_CORRIDORS_B1F/MAIN -> REGION_ABANDONED_SHIP_CORRIDORS_B1F/STORAGE_DOOR", player),
         lambda state: state.has("Storage Key", player)
     )
 
     # New Mauville
     set_rule(
-        multiworld.get_entrance("MAP_NEW_MAUVILLE_ENTRANCE:1/MAP_NEW_MAUVILLE_INSIDE:0", player),
+        multiworld.get_entrance("REGION_NEW_MAUVILLE_ENTRANCE/MAIN -> REGION_NEW_MAUVILLE_ENTRANCE/UNLOCK_DOOR", player),
         lambda state: state.has("Basement Key", player)
     )
 
@@ -628,7 +636,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
 
     # Safari Zone
     set_rule(
-        multiworld.get_entrance("MAP_ROUTE121_SAFARI_ZONE_ENTRANCE:0,1/MAP_SAFARI_ZONE_SOUTH:0", player),
+        multiworld.get_entrance("REGION_ROUTE121_SAFARI_ZONE_ENTRANCE/MAIN -> REGION_ROUTE121_SAFARI_ZONE_ENTRANCE/PARK_ENTRANCE", player),
         lambda state: state.has("Pokeblock Case", player)
     )
     set_rule(
@@ -863,11 +871,11 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         can_surf
     )
     set_rule(
-        multiworld.get_entrance("MAP_SOOTOPOLIS_CITY:3/MAP_CAVE_OF_ORIGIN_ENTRANCE:0", player),
+        multiworld.get_entrance("REGION_SOOTOPOLIS_CITY/WEST -> REGION_SOOTOPOLIS_CITY/CAVE_ENTRANCE", player),
         lambda state: state.has("EVENT_RELEASE_KYOGRE", player)
     )
     set_rule(
-        multiworld.get_entrance("MAP_SOOTOPOLIS_CITY:2/MAP_SOOTOPOLIS_CITY_GYM_1F:0", player),
+        multiworld.get_entrance("REGION_SOOTOPOLIS_CITY/ISLAND -> REGION_SOOTOPOLIS_CITY/OPEN_GYM_DOORS", player),
         lambda state: state.has("EVENT_WAKE_RAYQUAZA", player)
     )
     set_rule(
@@ -994,7 +1002,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
     )
     if "Seafloor Cavern Aqua Grunt" not in multiworld.remove_roadblocks[player].value:
         set_rule(
-            multiworld.get_entrance("MAP_SEAFLOOR_CAVERN_ENTRANCE:1/MAP_SEAFLOOR_CAVERN_ROOM1:0", player),
+            multiworld.get_entrance("REGION_SEAFLOOR_CAVERN_ENTRANCE/MAIN -> REGION_SEAFLOOR_CAVERN_ENTRANCE/PAST_GRUNT", player),
             lambda state: state.has("EVENT_STEVEN_GIVES_DIVE", player)
         )
 
@@ -1010,7 +1018,7 @@ def set_default_rules(multiworld: MultiWorld, player: int):
 
     # Sky Pillar
     set_rule(
-        multiworld.get_entrance("MAP_SKY_PILLAR_OUTSIDE:1/MAP_SKY_PILLAR_1F:0", player),
+        multiworld.get_entrance("REGION_SKY_PILLAR_OUTSIDE/MAIN -> REGION_SKY_PILLAR_OUTSIDE/OPEN_DOOR", player),
         lambda state: state.has("EVENT_WALLACE_GOES_TO_SKY_PILLAR", player)
     )
     # Sky Pillar does not require the mach bike until Rayquaza returns, which means the top
@@ -1054,19 +1062,19 @@ def set_default_rules(multiworld: MultiWorld, player: int):
         lambda state: can_rock_smash(state) and can_strength(state)
     )
     set_rule(
-        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_UPPER -> REGION_VICTORY_ROAD_B1F/MAIN_LOWER_EAST", player),
-        lambda state: can_rock_smash(state) and can_strength(state)
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_WEST_LADDER -> REGION_VICTORY_ROAD_B1F/MAIN_WEST", player),
+        can_strength
     )
     set_rule(
-        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_LOWER_EAST -> REGION_VICTORY_ROAD_B1F/MAIN_LOWER_WEST", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_WEST -> REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH", player),
         can_rock_smash
     )
     set_rule(
-        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_LOWER_WEST -> REGION_VICTORY_ROAD_B1F/MAIN_LOWER_EAST", player),
-        lambda state: can_rock_smash(state) and can_strength(state)
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH -> REGION_VICTORY_ROAD_B1F/MAIN_WEST", player),
+        can_rock_smash
     )
     set_rule(
-        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_LOWER_WEST -> REGION_VICTORY_ROAD_B1F/MAIN_UPPER", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_WEST -> REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH", player),
         lambda state: can_rock_smash(state) and can_strength(state)
     )
     set_rule(
@@ -1311,56 +1319,88 @@ def add_flash_rules(multiworld: MultiWorld, player: int):
 
     # Granite Cave
     add_rule(
-        multiworld.get_entrance("MAP_GRANITE_CAVE_1F:2/MAP_GRANITE_CAVE_B1F:1", player),
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/LADDER_SW -> REGION_GRANITE_CAVE_B1F/LOWER", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_GRANITE_CAVE_B1F:3/MAP_GRANITE_CAVE_B2F:1", player),
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/LADDER_SE -> REGION_GRANITE_CAVE_B1F/LOWER", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/LADDER_PLATFORM_E -> REGION_GRANITE_CAVE_B1F/LOWER_PLATFORM", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/LADDER_PLATFORM_W -> REGION_GRANITE_CAVE_B1F/LOWER_PLATFORM", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_1_LADDER -> REGION_GRANITE_CAVE_B1F/UPPER_1", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_2_LADDER -> REGION_GRANITE_CAVE_B1F/UPPER_2", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B1F/UPPER_3_LADDER -> REGION_GRANITE_CAVE_B1F/UPPER_3", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B2F/NORTH_LOWER_LANDING_LADDER -> REGION_GRANITE_CAVE_B2F/NORTH_LOWER_LANDING", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B2F/NORTH_UPPER_LANDING_LADDER -> REGION_GRANITE_CAVE_B2F/NORTH_UPPER_LANDING", player),
+        can_flash
+    )
+    add_rule(
+        multiworld.get_entrance("REGION_GRANITE_CAVE_B2F/NORTH_EAST_ROOM_LADDER -> REGION_GRANITE_CAVE_B2F/NORTH_EAST_ROOM", player),
         can_flash
     )
 
     # Victory Road
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_1F:2/MAP_VICTORY_ROAD_B1F:5", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/NORTH_EAST_LADDER -> REGION_VICTORY_ROAD_B1F/NORTH_EAST", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_1F:4/MAP_VICTORY_ROAD_B1F:4", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_UP -> REGION_VICTORY_ROAD_B1F/SOUTH_WEST_MAIN", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_1F:3/MAP_VICTORY_ROAD_B1F:2", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_W -> REGION_VICTORY_ROAD_B1F/SOUTH_WEST_MAIN", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B1F:3/MAP_VICTORY_ROAD_B2F:1", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_N -> REGION_VICTORY_ROAD_B1F/SOUTH_WEST_MAIN", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B1F:1/MAP_VICTORY_ROAD_B2F:2", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_WEST_LADDER -> REGION_VICTORY_ROAD_B1F/MAIN_WEST", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B1F:6/MAP_VICTORY_ROAD_B2F:3", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH_LADDER -> REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B1F:0/MAP_VICTORY_ROAD_B2F:0", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH_LADDER -> REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B2F:3/MAP_VICTORY_ROAD_B1F:6", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B2F/LOWER_WEST -> REGION_VICTORY_ROAD_B2F/LOWER_WEST_WATER", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B2F:2/MAP_VICTORY_ROAD_B1F:1", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B2F/LOWER_WEST_ISLAND -> REGION_VICTORY_ROAD_B2F/LOWER_WEST_WATER", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B2F:0/MAP_VICTORY_ROAD_B1F:0", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B2F/LOWER_EAST -> REGION_VICTORY_ROAD_B2F/LOWER_EAST_WATER", player),
         can_flash
     )
     add_rule(
-        multiworld.get_entrance("MAP_VICTORY_ROAD_B2F:1/MAP_VICTORY_ROAD_B1F:3", player),
+        multiworld.get_entrance("REGION_VICTORY_ROAD_B2F/UPPER_LADDER -> REGION_VICTORY_ROAD_B2F/UPPER", player),
         can_flash
     )

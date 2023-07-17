@@ -89,6 +89,28 @@
       "MAP_GRANITE_CAVE_1F:3/MAP_GRANITE_CAVE_STEVENS_ROOM:0"
     ]
   },
+  "REGION_GRANITE_CAVE_B1F/LADDER_SW": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/LOWER"
+    ],
+    "warps": [
+      "MAP_GRANITE_CAVE_B1F:1/MAP_GRANITE_CAVE_1F:2"
+    ]
+  },
+  "REGION_GRANITE_CAVE_B1F/LADDER_SE": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/LOWER"
+    ],
+    "warps": [
+      "MAP_GRANITE_CAVE_B1F:3/MAP_GRANITE_CAVE_B2F:1"
+    ]
+  },
   "REGION_GRANITE_CAVE_B1F/LOWER": {
     "parent_map": "MAP_GRANITE_CAVE_B1F",
     "locations": [
@@ -96,33 +118,105 @@
     ],
     "events": [],
     "exits": [
-      "REGION_GRANITE_CAVE_B1F/UPPER"
+      "REGION_GRANITE_CAVE_B1F/LADDER_SW",
+      "REGION_GRANITE_CAVE_B1F/LADDER_SE",
+      "REGION_GRANITE_CAVE_B1F/UPPER_1"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B1F/LADDER_PLATFORM_W": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/LOWER_PLATFORM"
     ],
     "warps": [
-      "MAP_GRANITE_CAVE_B1F:1/MAP_GRANITE_CAVE_1F:2",
-      "MAP_GRANITE_CAVE_B1F:3/MAP_GRANITE_CAVE_B2F:1"
+      "MAP_GRANITE_CAVE_B1F:0/MAP_GRANITE_CAVE_1F:1"
+    ]
+  },
+  "REGION_GRANITE_CAVE_B1F/LADDER_PLATFORM_E": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/LOWER_PLATFORM"
+    ],
+    "warps": [
+      "MAP_GRANITE_CAVE_B1F:2/MAP_GRANITE_CAVE_B2F:0"
     ]
   },
   "REGION_GRANITE_CAVE_B1F/LOWER_PLATFORM": {
     "parent_map": "MAP_GRANITE_CAVE_B1F",
     "locations": [],
     "events": [],
-    "exits": [],
-    "warps": [
-      "MAP_GRANITE_CAVE_B1F:0/MAP_GRANITE_CAVE_1F:1",
-      "MAP_GRANITE_CAVE_B1F:2/MAP_GRANITE_CAVE_B2F:0"
-    ]
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/LADDER_PLATFORM_E",
+      "REGION_GRANITE_CAVE_B1F/LADDER_PLATFORM_W"
+    ],
+    "warps": []
   },
-  "REGION_GRANITE_CAVE_B1F/UPPER": {
+  "REGION_GRANITE_CAVE_B1F/UPPER_1": {
     "parent_map": "MAP_GRANITE_CAVE_B1F",
     "locations": [],
     "events": [],
     "exits": [
-      "REGION_GRANITE_CAVE_B1F/UPPER"
+      "REGION_GRANITE_CAVE_B1F/UPPER_2",
+      "REGION_GRANITE_CAVE_B1F/UPPER_1_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B1F/UPPER_1_LADDER": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/UPPER_1"
     ],
     "warps": [
-      "MAP_GRANITE_CAVE_B1F:4/MAP_GRANITE_CAVE_B2F:2",
-      "MAP_GRANITE_CAVE_B1F:5/MAP_GRANITE_CAVE_B2F:3",
+      "MAP_GRANITE_CAVE_B1F:4/MAP_GRANITE_CAVE_B2F:2"
+    ]
+  },
+  "REGION_GRANITE_CAVE_B1F/UPPER_2": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/UPPER_1",
+      "REGION_GRANITE_CAVE_B1F/UPPER_3",
+      "REGION_GRANITE_CAVE_B1F/UPPER_2_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B1F/UPPER_2_LADDER": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/UPPER_2"
+    ],
+    "warps": [
+      "MAP_GRANITE_CAVE_B1F:5/MAP_GRANITE_CAVE_B2F:3"
+    ]
+  },
+  "REGION_GRANITE_CAVE_B1F/UPPER_3": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/UPPER_2",
+      "REGION_GRANITE_CAVE_B1F/UPPER_3_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B1F/UPPER_3_LADDER": {
+    "parent_map": "MAP_GRANITE_CAVE_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B1F/UPPER_3"
+    ],
+    "warps": [
       "MAP_GRANITE_CAVE_B1F:6/MAP_GRANITE_CAVE_B2F:4"
     ]
   },
@@ -132,7 +226,18 @@
       "ITEM_GRANITE_CAVE_B2F_REPEL"
     ],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B2F/NORTH_LOWER_LANDING_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B2F/NORTH_LOWER_LANDING_LADDER": {
+    "parent_map": "MAP_GRANITE_CAVE_B2F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B2F/NORTH_LOWER_LANDING"
+    ],
     "warps": [
       "MAP_GRANITE_CAVE_B2F:2/MAP_GRANITE_CAVE_B1F:4"
     ]
@@ -142,7 +247,17 @@
     "locations": [],
     "events": [],
     "exits": [
+      "REGION_GRANITE_CAVE_B2F/NORTH_UPPER_LANDING_LADDER",
       "REGION_GRANITE_CAVE_B2F/NORTH_LOWER_LANDING"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B2F/NORTH_UPPER_LANDING_LADDER": {
+    "parent_map": "MAP_GRANITE_CAVE_B2F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B2F/NORTH_UPPER_LANDING"
     ],
     "warps": [
       "MAP_GRANITE_CAVE_B2F:3/MAP_GRANITE_CAVE_B1F:5"
@@ -155,7 +270,18 @@
       "HIDDEN_ITEM_GRANITE_CAVE_B2F_EVERSTONE_1"
     ],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B2F/NORTH_EAST_ROOM_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_GRANITE_CAVE_B2F/NORTH_EAST_ROOM_LADDER": {
+    "parent_map": "MAP_GRANITE_CAVE_B2F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_GRANITE_CAVE_B2F/NORTH_EAST_ROOM"
+    ],
     "warps": [
       "MAP_GRANITE_CAVE_B2F:4/MAP_GRANITE_CAVE_B1F:6"
     ]
@@ -535,9 +661,21 @@
       "ITEM_METEOR_FALLS_1F_1R_TM23"
     ],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_METEOR_FALLS_1F_1R/TOP_CAVE_ENTRANCE"
+    ],
     "warps": [
-      "MAP_METEOR_FALLS_1F_1R:3/MAP_METEOR_FALLS_B1F_1R:4",
+      "MAP_METEOR_FALLS_1F_1R:3/MAP_METEOR_FALLS_B1F_1R:4"
+    ]
+  },
+  "REGION_METEOR_FALLS_1F_1R/TOP_CAVE_ENTRANCE": {
+    "parent_map": "MAP_METEOR_FALLS_1F_1R",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_METEOR_FALLS_1F_1R/TOP"
+    ],
+    "warps": [
       "MAP_METEOR_FALLS_1F_1R:5/MAP_METEOR_FALLS_STEVENS_CAVE:0"
     ]
   },
@@ -786,16 +924,28 @@
     "parent_map": "MAP_ABANDONED_SHIP_CORRIDORS_B1F",
     "locations": [],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_ABANDONED_SHIP_CORRIDORS_B1F/STORAGE_DOOR"
+    ],
     "warps": [
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:0/MAP_ABANDONED_SHIP_ROOMS2_B1F:2",
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:1/MAP_ABANDONED_SHIP_ROOMS2_B1F:0",
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:2/MAP_ABANDONED_SHIP_ROOMS_B1F:0",
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:3/MAP_ABANDONED_SHIP_ROOMS_B1F:1",
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:4/MAP_ABANDONED_SHIP_ROOMS_B1F:2",
-      "MAP_ABANDONED_SHIP_CORRIDORS_B1F:5/MAP_ABANDONED_SHIP_ROOM_B1F:0",
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:6/MAP_ABANDONED_SHIP_CORRIDORS_1F:10",
       "MAP_ABANDONED_SHIP_CORRIDORS_B1F:7/MAP_ABANDONED_SHIP_CORRIDORS_1F:9"
+    ]
+  },
+  "REGION_ABANDONED_SHIP_CORRIDORS_B1F/STORAGE_DOOR": {
+    "parent_map": "MAP_ABANDONED_SHIP_CORRIDORS_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ABANDONED_SHIP_CORRIDORS_B1F/MAIN"
+    ],
+    "warps": [
+      "MAP_ABANDONED_SHIP_CORRIDORS_B1F:5/MAP_ABANDONED_SHIP_ROOM_B1F:0"
     ]
   },
   "REGION_ABANDONED_SHIP_ROOMS_B1F/LEFT": {
@@ -857,14 +1007,58 @@
     "locations": [],
     "events": [],
     "exits": [
-      "REGION_ABANDONED_SHIP_UNDERWATER2/MAIN"
+      "REGION_ABANDONED_SHIP_UNDERWATER2/MAIN",
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_1_DOOR",
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_2_DOOR",
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_4_DOOR",
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_6_DOOR"
     ],
     "warps": [
-      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:0/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:0",
-      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:3/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:6",
-      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:1/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:2",
       "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:4/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:7",
-      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:2/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:4",
+      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:2/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:4"
+    ]
+  },
+  "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_1_DOOR": {
+    "parent_map": "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN"
+    ],
+    "warps": [
+      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:0/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:0"
+    ]
+  },
+  "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_2_DOOR": {
+    "parent_map": "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN"
+    ],
+    "warps": [
+      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:1/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:2"
+    ]
+  },
+  "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_4_DOOR": {
+    "parent_map": "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN"
+    ],
+    "warps": [
+      "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:3/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:6"
+    ]
+  },
+  "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/ROOM_6_DOOR": {
+    "parent_map": "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS/MAIN"
+    ],
+    "warps": [
       "MAP_ABANDONED_SHIP_HIDDEN_FLOOR_CORRIDORS:5/MAP_ABANDONED_SHIP_HIDDEN_FLOOR_ROOMS:8"
     ]
   },
@@ -961,9 +1155,21 @@
     "parent_map": "MAP_NEW_MAUVILLE_ENTRANCE",
     "locations": [],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_NEW_MAUVILLE_ENTRANCE/UNLOCK_DOOR"
+    ],
     "warps": [
-      "MAP_NEW_MAUVILLE_ENTRANCE:0/MAP_ROUTE110:0",
+      "MAP_NEW_MAUVILLE_ENTRANCE:0/MAP_ROUTE110:0"
+    ]
+  },
+  "REGION_NEW_MAUVILLE_ENTRANCE/UNLOCK_DOOR": {
+    "parent_map": "MAP_NEW_MAUVILLE_ENTRANCE",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_NEW_MAUVILLE_ENTRANCE/MAIN"
+    ],
+    "warps": [
       "MAP_NEW_MAUVILLE_ENTRANCE:1/MAP_NEW_MAUVILLE_INSIDE:0"
     ]
   },
@@ -1612,10 +1818,21 @@
     "locations": [],
     "events": [],
     "exits": [
-      "REGION_UNDERWATER_SEAFLOOR_CAVERN/MAIN"
+      "REGION_UNDERWATER_SEAFLOOR_CAVERN/MAIN",
+      "REGION_SEAFLOOR_CAVERN_ENTRANCE/PAST_GRUNT"
     ],
     "warps": [
-      "MAP_SEAFLOOR_CAVERN_ENTRANCE:0/MAP_UNDERWATER_ROUTE128:0!",
+      "MAP_SEAFLOOR_CAVERN_ENTRANCE:0/MAP_UNDERWATER_ROUTE128:0!"
+    ]
+  },
+  "REGION_SEAFLOOR_CAVERN_ENTRANCE/PAST_GRUNT": {
+    "parent_map": "MAP_SEAFLOOR_CAVERN_ENTRANCE",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_SEAFLOOR_CAVERN_ENTRANCE/MAIN"
+    ],
+    "warps": [
       "MAP_SEAFLOOR_CAVERN_ENTRANCE:1/MAP_SEAFLOOR_CAVERN_ROOM1:0"
     ]
   },
@@ -1898,9 +2115,21 @@
     "parent_map": "MAP_SKY_PILLAR_OUTSIDE",
     "locations": [],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_SKY_PILLAR_OUTSIDE/OPEN_DOOR"
+    ],
     "warps": [
-      "MAP_SKY_PILLAR_OUTSIDE:0/MAP_SKY_PILLAR_ENTRANCE:1",
+      "MAP_SKY_PILLAR_OUTSIDE:0/MAP_SKY_PILLAR_ENTRANCE:1"
+    ]
+  },
+  "REGION_SKY_PILLAR_OUTSIDE/OPEN_DOOR": {
+    "parent_map": "MAP_SKY_PILLAR_OUTSIDE",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_SKY_PILLAR_OUTSIDE/MAIN"
+    ],
+    "warps": [
       "MAP_SKY_PILLAR_OUTSIDE:1/MAP_SKY_PILLAR_1F:0"
     ]
   },
@@ -2080,7 +2309,18 @@
       "ITEM_VICTORY_ROAD_B1F_TM29"
     ],
     "events": [],
-    "exits": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/NORTH_EAST_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_VICTORY_ROAD_B1F/NORTH_EAST_LADDER": {
+    "parent_map": "MAP_VICTORY_ROAD_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/NORTH_EAST"
+    ],
     "warps": [
       "MAP_VICTORY_ROAD_B1F:3/MAP_VICTORY_ROAD_B2F:1"
     ]
@@ -2090,11 +2330,32 @@
     "locations": [],
     "events": [],
     "exits": [
-      "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_UP"
+      "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_UP",
+      "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_N",
+      "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_W"
+    ],
+    "warps": []
+  },
+  "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_W": {
+    "parent_map": "MAP_VICTORY_ROAD_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_MAIN"
     ],
     "warps": [
-      "MAP_VICTORY_ROAD_B1F:1/MAP_VICTORY_ROAD_B2F:2",
       "MAP_VICTORY_ROAD_B1F:6/MAP_VICTORY_ROAD_B2F:3"
+    ]
+  },
+  "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_N": {
+    "parent_map": "MAP_VICTORY_ROAD_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_MAIN"
+    ],
+    "warps": [
+      "MAP_VICTORY_ROAD_B1F:1/MAP_VICTORY_ROAD_B2F:2"
     ]
   },
   "REGION_VICTORY_ROAD_B1F/SOUTH_WEST_LADDER_UP": {
@@ -2108,40 +2369,70 @@
       "MAP_VICTORY_ROAD_B1F:5/MAP_VICTORY_ROAD_1F:2"
     ]
   },
-  "REGION_VICTORY_ROAD_B1F/MAIN_UPPER": {
+  "REGION_VICTORY_ROAD_B1F/MAIN_WEST": {
     "parent_map": "MAP_VICTORY_ROAD_B1F",
     "locations": [],
     "events": [],
     "exits": [
-      "REGION_VICTORY_ROAD_B1F/MAIN_LOWER_EAST"
+      "REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH",
+      "REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH",
+      "REGION_VICTORY_ROAD_B1F/MAIN_WEST_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_VICTORY_ROAD_B1F/MAIN_WEST_LADDER": {
+    "parent_map": "MAP_VICTORY_ROAD_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/MAIN_WEST"
     ],
     "warps": [
-      "MAP_VICTORY_ROAD_B1F:2/MAP_VICTORY_ROAD_1F:3"
+      "MAP_VICTORY_ROAD_B1F:4/MAP_VICTORY_ROAD_1F:4"
     ]
   },
-  "REGION_VICTORY_ROAD_B1F/MAIN_LOWER_EAST": {
+  "REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH": {
     "parent_map": "MAP_VICTORY_ROAD_B1F",
     "locations": [
       "ITEM_VICTORY_ROAD_B1F_FULL_RESTORE"
     ],
     "events": [],
     "exits": [
-      "REGION_VICTORY_ROAD_B1F/MAIN_LOWER_WEST"
+      "REGION_VICTORY_ROAD_B1F/MAIN_WEST",
+      "REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH_LADDER": {
+    "parent_map": "MAP_VICTORY_ROAD_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH"
     ],
     "warps": [
       "MAP_VICTORY_ROAD_B1F:0/MAP_VICTORY_ROAD_B2F:0"
     ]
   },
-  "REGION_VICTORY_ROAD_B1F/MAIN_LOWER_WEST": {
+  "REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH": {
     "parent_map": "MAP_VICTORY_ROAD_B1F",
     "locations": [],
     "events": [],
     "exits": [
-      "REGION_VICTORY_ROAD_B1F/MAIN_UPPER",
-      "REGION_VICTORY_ROAD_B1F/MAIN_LOWER_EAST"
+      "REGION_VICTORY_ROAD_B1F/MAIN_SOUTH_PATH",
+      "REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH_LADDER": {
+    "parent_map": "MAP_VICTORY_ROAD_B1F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B1F/MAIN_NORTH_PATH"
     ],
     "warps": [
-      "MAP_VICTORY_ROAD_B1F:4/MAP_VICTORY_ROAD_1F:4"
+      "MAP_VICTORY_ROAD_B1F:2/MAP_VICTORY_ROAD_1F:3"
     ]
   },
   "REGION_VICTORY_ROAD_B2F/LOWER_WEST": {
@@ -2208,7 +2499,17 @@
     "exits": [
       "REGION_VICTORY_ROAD_B2F/LOWER_EAST_WATER",
       "REGION_VICTORY_ROAD_B2F/LOWER_EAST",
-      "REGION_VICTORY_ROAD_B2F/UPPER_WATER"
+      "REGION_VICTORY_ROAD_B2F/UPPER_WATER",
+      "REGION_VICTORY_ROAD_B2F/UPPER_LADDER"
+    ],
+    "warps": []
+  },
+  "REGION_VICTORY_ROAD_B2F/UPPER_LADDER": {
+    "parent_map": "MAP_VICTORY_ROAD_B2F",
+    "locations": [],
+    "events": [],
+    "exits": [
+      "REGION_VICTORY_ROAD_B2F/UPPER"
     ],
     "warps": [
       "MAP_VICTORY_ROAD_B2F:1/MAP_VICTORY_ROAD_B1F:3"
