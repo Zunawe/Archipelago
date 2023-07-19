@@ -266,7 +266,7 @@ class PokemonEmeraldData:
     abilities: List[AbilityData]
     maps: List[MapData]
     warps: Dict[str, Warp]
-    warp_map: Dict[str, Optional[str]]
+    warp_map: Dict[str, str]
     trainers: List[TrainerData]
 
     def __init__(self):
@@ -491,9 +491,6 @@ def _init():
             if warp.connects_to(other_warp):
                 data.warp_map[encoded_warp] = encoded_other_warp
                 break
-
-        if encoded_warp not in data.warp_map:
-            data.warp_map[encoded_warp] = None
 
     # Create trainer data
     for i, trainer_json in enumerate(extracted_data["trainers"]):

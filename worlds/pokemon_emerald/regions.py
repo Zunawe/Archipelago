@@ -87,85 +87,115 @@ unrandomizable_warps = {
 
 
 def shuffle_warps(multiworld: MultiWorld, player: int):
-    touched_warps = Counter()
-    def rotate_entrances(AB: Entrance, BA: Entrance, CD: Entrance, DC: Entrance):
-        # A -- B
-        #
-        # C -- D
-        # to
-        # A    B
-        # |    |
-        # C    D
+    # Counter keeps track of which warps can be randomized and how many times each one has been involved in a swap
+    warp_swap_counter: Counter[str] = Counter({
+        warp: 0
+        for warp in multiworld.worlds[player].modified_data.warp_map.keys()
+        if warp not in unrandomizable_warps
+    })
 
-        AB.connected_region.entrances.remove(AB)
-        AB.connect(CD.parent_region)
-        multiworld.worlds[player].modified_data.warp_map[AB.name] = CD.name
+    def rotate_entrances(*entrance_pairs: Tuple[Entrance, Entrance]):
+        """
+        For two-way warps, shift their connections over by one in the list of pairs. For example:
 
-        BA.connected_region.entrances.remove(BA)
-        BA.connect(DC.parent_region)
-        multiworld.worlds[player].modified_data.warp_map[CD.name] = AB.name
+        A   C   E
+        |   |   |
+        B   D   F
 
-        CD.connected_region.entrances.remove(CD)
-        CD.connect(AB.parent_region)
-        multiworld.worlds[player].modified_data.warp_map[BA.name] = DC.name
+        becomes
 
-        DC.connected_region.entrances.remove(DC)
-        DC.connect(BA.parent_region)
-        multiworld.worlds[player].modified_data.warp_map[DC.name] = BA.name
+        A   C   E
+        |   |   |
+        D   F   B
 
-        touched_warps.update({AB.name: 1})
-        touched_warps.update({BA.name: 1})
-        touched_warps.update({CD.name: 1})
-        touched_warps.update({DC.name: 1})
+        Returns a function which undoes the rotation.
+        """
+
+        for i, (AB, BA) in enumerate(entrance_pairs):
+            BA_next = entrance_pairs[(i + 1) % len(entrance_pairs)][1]
+            AB_prev = entrance_pairs[(i - 1) % len(entrance_pairs)][0]
+
+            AB.connected_region.entrances.remove(AB)
+            AB.connect(BA_next.parent_region)
+            multiworld.worlds[player].modified_data.warp_map[AB.name] = BA_next.name
+
+            BA.connected_region.entrances.remove(BA)
+            BA.connect(AB_prev.parent_region)
+            multiworld.worlds[player].modified_data.warp_map[BA.name] = AB_prev.name
+
+            warp_swap_counter.update({AB.name: 1})
+            warp_swap_counter.update({BA.name: 1})
 
         def undo():
-            rotate_entrances(AB, CD, BA, DC)
-            touched_warps.subtract({AB.name: 2})
-            touched_warps.subtract({BA.name: 2})
-            touched_warps.subtract({CD.name: 2})
-            touched_warps.subtract({DC.name: 2})
+            for AB, BA in entrance_pairs:
+                AB.connected_region.entrances.remove(AB)
+                AB.connect(BA.parent_region)
+                multiworld.worlds[player].modified_data.warp_map[AB.name] = BA.name
+
+                BA.connected_region.entrances.remove(BA)
+                BA.connect(AB.parent_region)
+                multiworld.worlds[player].modified_data.warp_map[BA.name] = AB.name
+
+                warp_swap_counter.subtract({AB.name: 1})
+                warp_swap_counter.subtract({BA.name: 1})
 
         return undo
 
     all_regions: Set[PokemonEmeraldRegion] = set(multiworld.get_regions(player))
 
-    group_size = 1
-    num_swaps = 0
-    num_attempts = 0
-    while num_swaps < 5000 and num_attempts < 10000:
-        num_attempts += 1
+    group_size = 1  # Controls the number of rotations to do before checking connectedness
+    max_candidate_swaps = 0  # The maximum number of times a warp can have already been swapped before being considered
+    num_swaps = 0  # Tracks the number of warps that have been swapped
+    panic_counter = 0  # Breaks out of loops that could otherwise be infinite or very long
+    while num_swaps < 1000 and panic_counter < 10000:
+        panic_counter += 1
+
+        # A list of warps we're allowed to swap this iteration
+        # sorted for reproducibility
+        candidate_warps = sorted([
+            warp
+            for warp in warp_swap_counter.keys()
+            if warp_swap_counter[warp] <= max_candidate_swaps
+        ])
 
         undo_stack: List[Callable[[], None]] = []
-        for _ in range(group_size):
-            AB = multiworld.get_entrance(multiworld.worlds[player].random.choice(list(multiworld.worlds[player].modified_data.warps)), player)
-            if multiworld.worlds[player].modified_data.warp_map[AB.name] is None:
-                continue
-            BA = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_map[AB.name], player)
-            if multiworld.worlds[player].modified_data.warp_map[BA.name] != AB.name:
-                continue
+        for _i in range(group_size):
+            warps_in_rotation: Set[str] = set()
+            pairs: List[Tuple[Entrance, Entrance]] = []
 
-            CD = multiworld.get_entrance(multiworld.worlds[player].random.choice(list(multiworld.worlds[player].modified_data.warps)), player)
-            if CD.name == AB.name or CD.name == BA.name or multiworld.worlds[player].modified_data.warp_map[CD.name] is None:
-                continue
-            DC = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_map[CD.name], player)
-            if multiworld.worlds[player].modified_data.warp_map[DC.name] != CD.name:
-                continue
+            # Varies the number of pairs in the rotation for more diverse outcomes
+            num_pairs = multiworld.worlds[player].random.randrange(2, 5)
 
-            if AB.name in unrandomizable_warps or BA.name in unrandomizable_warps or\
-                    CD.name in unrandomizable_warps or DC.name in unrandomizable_warps:
-                continue
+            for _j in range(num_pairs):
+                while True and panic_counter < 10000:
+                    panic_counter += 1
+                    AB = multiworld.get_entrance(multiworld.worlds[player].random.choice(candidate_warps), player)
+                    BA = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_map[AB.name], player)
 
-            undo_stack.append(rotate_entrances(AB, BA, CD, DC))
+                    if multiworld.worlds[player].modified_data.warp_map[BA.name] != AB.name:
+                        continue
+                    if AB.name in warps_in_rotation or BA.name in warps_in_rotation:
+                        continue
 
+                    pairs.append((AB, BA))
+                    break
+
+                warps_in_rotation |= {AB.name, BA.name}
+
+            undo_stack.append(rotate_entrances(*pairs))
+
+        # If all regions are reachable, try doing more swaps next time before checking connectedness and reset the limit
+        # on which warps should be swapped first. Otherwise, undo the rotations we've done in reverse order, cut the
+        # number of swaps next time, and increase the pool of warps to include more warps that have already been
+        # swapped.
         if len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0:
             num_swaps += group_size
             group_size += 1
+            max_candidate_swaps = 0
         else:
             for undo in reversed(undo_stack):
                 undo()
-
-            group_size = max(int(group_size / 2), 1)
-
             assert(len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0)
 
-    print(f"{len(list(filter(lambda count: count > 0, touched_warps.values())))} / {len(list(filter(lambda warp: (not warp[1].is_one_way) and (warp[0] not in unrandomizable_warps), data.warps.items())))} two-way warps were shuffled")
+            group_size = max(int(group_size / 2), 1)
+            max_candidate_swaps += 1
