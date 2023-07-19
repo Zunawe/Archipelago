@@ -11,24 +11,16 @@ from .items import PokemonEmeraldItem
 from .locations import PokemonEmeraldLocation
 
 
-class PokemonEmeraldRegion(Region):
-    shufflable_warps: List[Entrance]
-
-    def __init__(self, name: str, player: int, multiworld: MultiWorld, hint: Optional[str] = None):
-        super().__init__(name, player, multiworld, hint)
-        self.shufflable_warps = []
-
-
 def create_regions(multiworld: MultiWorld, player: int) -> None:
     """
     Iterates through regions created from JSON to create regions and adds them to the multiworld.
     Also creates and places events and connects regions via warps and the exits defined in the JSON.
     """
-    regions: Dict[str, PokemonEmeraldRegion] = {}
+    regions: Dict[str, Region] = {}
 
     connections: List[Tuple[str, str, str, bool]] = []
     for region_name, region_data in data.regions.items():
-        new_region = PokemonEmeraldRegion(region_name, player, multiworld)
+        new_region = Region(region_name, player, multiworld)
 
         for event_data in region_data.events:
             event = PokemonEmeraldLocation(player, event_data.name, None, new_region)
@@ -36,25 +28,22 @@ def create_regions(multiworld: MultiWorld, player: int) -> None:
             new_region.locations.append(event)
 
         for region_exit in region_data.exits:
-            connections.append((f"{region_name} -> {region_exit}", region_name, region_exit, False))
+            connections.append((f"{region_name} -> {region_exit}", region_name, region_exit))
 
         for warp in region_data.warps:
-            dest_warp = data.warps[data.warp_map[warp]]
+            dest_warp = data.warps[data.warp_destinations[warp]]
             if dest_warp.parent_region is None:
                 continue
-            connections.append((warp, region_name, dest_warp.parent_region, True))
+            connections.append((warp, region_name, dest_warp.parent_region))
 
         regions[region_name] = new_region
 
-    for name, source, dest, is_warp in connections:
+    for name, source, dest in connections:
         connection = Entrance(player, name, regions[source])
         regions[source].exits.append(connection)
         connection.connect(regions[dest])
 
-        if is_warp:
-            regions[source].shufflable_warps.append(connection)
-
-    menu = PokemonEmeraldRegion("Menu", player, multiworld)
+    menu = Region("Menu", player, multiworld)
     connection = Entrance(player, "Start Game", menu)
     menu.exits.append(connection)
     connection.connect(regions["REGION_LITTLEROOT_TOWN/MAIN"])
@@ -90,7 +79,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
     # Counter keeps track of which warps can be randomized and how many times each one has been involved in a swap
     warp_swap_counter: Counter[str] = Counter({
         warp: 0
-        for warp in multiworld.worlds[player].modified_data.warp_map.keys()
+        for warp in multiworld.worlds[player].modified_data.warp_destinations.keys()
         if warp not in unrandomizable_warps
     })
 
@@ -117,11 +106,13 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
 
             AB.connected_region.entrances.remove(AB)
             AB.connect(BA_next.parent_region)
-            multiworld.worlds[player].modified_data.warp_map[AB.name] = BA_next.name
+            multiworld.worlds[player].modified_data.warp_destinations[AB.name] = BA_next.name
+            multiworld.worlds[player].modified_data.warp_map[AB.name] = f"{AB.name.split('/')[0]}/{BA_next.name.split('/')[1]}"
 
             BA.connected_region.entrances.remove(BA)
             BA.connect(AB_prev.parent_region)
-            multiworld.worlds[player].modified_data.warp_map[BA.name] = AB_prev.name
+            multiworld.worlds[player].modified_data.warp_destinations[BA.name] = AB_prev.name
+            multiworld.worlds[player].modified_data.warp_map[BA.name] = f"{BA.name.split('/')[0]}/{AB_prev.name.split('/')[1]}"
 
             warp_swap_counter.update({AB.name: 1})
             warp_swap_counter.update({BA.name: 1})
@@ -130,18 +121,20 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
             for AB, BA in entrance_pairs:
                 AB.connected_region.entrances.remove(AB)
                 AB.connect(BA.parent_region)
-                multiworld.worlds[player].modified_data.warp_map[AB.name] = BA.name
+                multiworld.worlds[player].modified_data.warp_destinations[AB.name] = BA.name
+                multiworld.worlds[player].modified_data.warp_map[AB.name] = f"{AB.name.split('/')[0]}/{BA.name.split('/')[1]}"
 
                 BA.connected_region.entrances.remove(BA)
                 BA.connect(AB.parent_region)
-                multiworld.worlds[player].modified_data.warp_map[BA.name] = AB.name
+                multiworld.worlds[player].modified_data.warp_destinations[BA.name] = AB.name
+                multiworld.worlds[player].modified_data.warp_map[BA.name] = f"{BA.name.split('/')[0]}/{AB.name.split('/')[1]}"
 
                 warp_swap_counter.subtract({AB.name: 1})
                 warp_swap_counter.subtract({BA.name: 1})
 
         return undo
 
-    all_regions: Set[PokemonEmeraldRegion] = set(multiworld.get_regions(player))
+    all_regions: Set[Region] = set(multiworld.get_regions(player))
 
     group_size = 1  # Controls the number of rotations to do before checking connectedness
     max_candidate_swaps = 0  # The maximum number of times a warp can have already been swapped before being considered
@@ -170,9 +163,9 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
                 while True and panic_counter < 10000:
                     panic_counter += 1
                     AB = multiworld.get_entrance(multiworld.worlds[player].random.choice(candidate_warps), player)
-                    BA = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_map[AB.name], player)
+                    BA = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_destinations[AB.name], player)
 
-                    if multiworld.worlds[player].modified_data.warp_map[BA.name] != AB.name:
+                    if multiworld.worlds[player].modified_data.warp_destinations[BA.name] != AB.name:
                         continue
                     if AB.name in warps_in_rotation or BA.name in warps_in_rotation:
                         continue

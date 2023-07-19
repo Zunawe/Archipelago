@@ -28,7 +28,7 @@ def sanity_check():
 
     def check_warps():
         ignorable_warps = set(load_json_data("ignorable_warps.json"))
-        for warp_source, warp_dest in data.warp_map.items():
+        for warp_source, warp_dest in data.warp_destinations.items():
             if warp_source in ignorable_warps:
                 continue
 

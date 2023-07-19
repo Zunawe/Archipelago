@@ -208,6 +208,7 @@ class EncounterTableData(NamedTuple):
 @dataclass
 class MapData:
     name: str
+    warp_table_rom_address: int
     land_encounters: Optional[EncounterTableData]
     water_encounters: Optional[EncounterTableData]
     fishing_encounters: Optional[EncounterTableData]
@@ -266,6 +267,7 @@ class PokemonEmeraldData:
     abilities: List[AbilityData]
     maps: List[MapData]
     warps: Dict[str, Warp]
+    warp_destinations: Dict[str, str]
     warp_map: Dict[str, str]
     trainers: List[TrainerData]
 
@@ -282,6 +284,7 @@ class PokemonEmeraldData:
         self.abilities = []
         self.maps = []
         self.warps = {}
+        self.warp_destinations = {}
         self.warp_map = {}
         self.trainers = []
 
@@ -357,6 +360,7 @@ def _init():
                 raise AssertionError(f"Warp [{encoded_warp}] was claimed by multiple regions")
             new_region.warps.append(encoded_warp)
             data.warps[encoded_warp] = Warp(encoded_warp, region_name)
+            data.warp_map[encoded_warp] = encoded_warp
             claimed_warps.add(encoded_warp)
 
         new_region.warps.sort()
@@ -478,6 +482,7 @@ def _init():
 
         data.maps.append(MapData(
             map_name,
+            map_json["warp_table_rom_address"],
             land_encounters,
             water_encounters,
             fishing_encounters
@@ -489,7 +494,7 @@ def _init():
     for encoded_warp, warp in data.warps.items():
         for encoded_other_warp, other_warp in data.warps.items():
             if warp.connects_to(other_warp):
-                data.warp_map[encoded_warp] = encoded_other_warp
+                data.warp_destinations[encoded_warp] = encoded_other_warp
                 break
 
     # Create trainer data

@@ -11,7 +11,7 @@ from Options import Toggle
 from worlds.Files import APDeltaPatch
 import Utils
 
-from .data import PokemonEmeraldData, TrainerPokemonDataTypeEnum, data
+from .data import PokemonEmeraldData, TrainerPokemonDataTypeEnum, Warp, data
 from .items import reverse_offset_item_value
 from .options import RandomizeWildPokemon, RandomizeTrainerParties, EliteFourRequirement, NormanRequirement
 from .pokemon import get_random_species
@@ -54,6 +54,18 @@ def generate_output(modified_data: PokemonEmeraldData, multiworld: MultiWorld, p
     base_rom = get_base_rom_as_bytes()
     base_patch = pkgutil.get_data(__name__, "data/base_patch.bsdiff4")
     patched_rom = bytearray(bsdiff4.patch(base_rom, base_patch))
+
+    for new_warp_encoded in modified_data.warp_map.values():
+        new_warp = Warp(new_warp_encoded)
+        for warp_id in new_warp.source_ids:
+            source_map = [m for m in data.maps if m.name == new_warp.source_map][0]
+            patched_rom[source_map.warp_table_rom_address + (warp_id * 8) + 4] = new_warp.dest_ids[0]
+            _set_bytes_little_endian(
+                patched_rom,
+                source_map.warp_table_rom_address + (warp_id * 8) + 6,
+                2,
+                data.constants[new_warp.dest_map]
+            )
 
     # Set item values
     for location in multiworld.get_locations(player):
