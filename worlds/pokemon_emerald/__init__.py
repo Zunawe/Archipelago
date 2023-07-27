@@ -232,7 +232,9 @@ class PokemonEmeraldWorld(World):
         if self.multiworld.require_flash[self.player].value == Toggle.option_true:
             add_flash_rules(self.multiworld, self.player)
 
-        shuffle_warps(self.multiworld, self.player)
+        # Warp rando has to happen after rules are set and items are created
+        if self.multiworld.warps[self.player].value == Toggle.option_true:
+            shuffle_warps(self.multiworld, self.player)
 
     def generate_basic(self):
         victory_event_name = "EVENT_DEFEAT_CHAMPION"

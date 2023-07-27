@@ -179,6 +179,15 @@ class NormanCount(Range):
     default = 4
 
 
+class RandomizeWarps(Toggle):
+    """
+    Randomizes the destination of most warps (doors, stairs, warp pads, cave entrances, etc...)
+
+    WIP, there is probably broken logic, softlock potential, and future changes.
+    """
+    display_name = "Randomize Warps"
+
+
 class RandomizeWildPokemon(Choice):
     """
     Randomizes wild pokemon encounters (grass, caves, water, fishing)
@@ -565,6 +574,8 @@ option_definitions: Dict[str, Option] = {
     "elite_four_count": EliteFourCount,
     "norman_requirement": NormanRequirement,
     "norman_count": NormanCount,
+
+    "warps": RandomizeWarps,
 
     "wild_pokemon": RandomizeWildPokemon,
     "allow_wild_legendaries": AllowWildLegendaries,

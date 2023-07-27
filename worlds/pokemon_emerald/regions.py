@@ -2,9 +2,9 @@
 Functions related to AP regions for Pokemon Emerald (see ./data/regions for region definitions)
 """
 from collections import Counter
-from typing import Optional, Tuple, List, Dict, Set, Callable
+from typing import Tuple, List, Dict, Set, Callable
 
-from BaseClasses import Entrance, ItemClassification, Region, MultiWorld
+from BaseClasses import CollectionState, Entrance, ItemClassification, Region, MultiWorld
 
 from .data import data
 from .items import PokemonEmeraldItem
@@ -182,6 +182,28 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
 
     all_regions: Set[Region] = set(multiworld.get_regions(player))
 
+    def is_map_fully_connected() -> bool:
+        world = multiworld.worlds[player]
+        all_state = CollectionState(multiworld)
+
+        for item in multiworld.itempool:
+            if item.player == player:
+                world.collect(all_state, item)
+
+        # Enabling either HM/Badge shuffle seems to increase warp rando time by ~80% because of this
+        if world.hm_shuffle_info is not None:
+            for _, item in world.hm_shuffle_info:
+                world.collect(all_state, item)
+
+        if world.badge_shuffle_info is not None:
+            for _, item in world.badge_shuffle_info:
+                world.collect(all_state, item)
+
+        if world.hm_shuffle_info is not None or world.badge_shuffle_info is not None:
+            all_state.sweep_for_events()
+
+        return len(all_regions - all_state.reachable_regions[player]) == 0
+
     group_size = 1  # Controls the number of rotations to do before checking connectedness
     max_candidate_swaps = 0  # The maximum number of times a warp can have already been swapped before being considered
     num_swaps = 0  # Tracks the number of warps that have been swapped
@@ -229,7 +251,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         # on which warps should be swapped first. Otherwise, undo the rotations we've done in reverse order, cut the
         # number of swaps next time, and increase the pool of warps to include more warps that have already been
         # swapped.
-        if len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0:
+        if is_map_fully_connected():
             num_swaps += group_size
             group_size += 1
             max_candidate_swaps = int(warp_swap_counter.total() / len(warp_swap_counter))
@@ -237,7 +259,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
             for undo in reversed(undo_stack):
                 undo()
 
-            assert len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0
+            assert is_map_fully_connected()
 
             group_size = max(int(group_size / 2), 1)
             max_candidate_swaps += 1
