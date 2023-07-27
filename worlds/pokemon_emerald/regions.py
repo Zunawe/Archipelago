@@ -88,6 +88,40 @@ _unrandomizable_warps = {
 
 
 def shuffle_warps(multiworld: MultiWorld, player: int):
+    """
+    Randomizes two-way warps while maintaining a fully connected map.
+
+    Until 1000 swaps have been made, every iteration of a loop, two pairs of warps are chosen randomly and have their
+    destinations swapped. For example, the pairs (A, B) and (C, D) are chosen where A leads to B, B leads to A, C leads
+    to D, and D leads to C. The destinations are "rotated" so that the resulting pairs look like (A, D) and (C, B).
+    Then, check to see whether any regions were made unreachable by the rotation. If so, undo the changes.
+
+    To potentially cut down on the number of times we must check that every region is reachable, the function tries
+    to do multiple rotations before checking. The first "group size" is 1, so one rotation is made before checking
+    reachability. Every time the rotation is successful in maintaining a connected graph, increase the group size by 1.
+    So if group size is 5, do 5 rotations before checking reachability. If the graph isn't fully connected, undo all 5.
+    Every time the rotation results in a graph that isn't fully connected, divide group size by 2. Growing linearly
+    while shrinking exponentially ensures we're usually at a size where making swaps does not result in unreachable
+    regions. Increasing group size makes it more likely we will have unreachable regions the next time we check, but
+    if we're successful enough times in making multiple rotations before checking connectedness, it should save time
+    overall.
+
+    In the case where the graph is already very unlikely to be connected after a rotation, we don't want to have this
+    group rotation method put us in a situation where every time we have a successful swap, we try to swap more next
+    time and always fail. So group swaps will only come into effect after a few successful swaps in a row. The idea is
+    to create a self-regulating system that saves reachability checks when it can, but doesn't waste too many swaps to
+    do so.
+
+    Instead of only rotating 2 pairs of warps, we can rotate an arbitrary amount (see the docstring for
+    `rotate_entrances`). This should increase the variety of possible resulting graphs, but may result in more
+    instances of unreachable regions. Here, the number of pairs is random on the interval [2, 5].
+
+    To increase the "perceived" randomness of the resulting graph, the candidates for randomly chosen warps are heavily
+    biased toward warps that have been involved in fewer swaps. Every failed swap, the next attempt will involve
+    warps that have been involved in one more previous swap. Every successful swap, the ceiling is reset to the average
+    number of times any given warp has been swapped. This makes it much less likely that there will be untouched
+    swaps after randomization, even without a large number of total swaps.
+    """
     # Counter keeps track of which warps can be randomized and how many times each one has been involved in a swap
     warp_swap_counter: Counter[str] = Counter({
         warp: 0
@@ -164,7 +198,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         ])
 
         undo_stack: List[Callable[[], None]] = []
-        for _i in range(group_size):
+        for _i in range(group_size if group_size > 3 else 1):
             warps_in_rotation: Set[str] = set()
             pairs: List[Tuple[Entrance, Entrance]] = []
 
@@ -198,7 +232,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         if len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0:
             num_swaps += group_size
             group_size += 1
-            max_candidate_swaps = 0
+            max_candidate_swaps = int(warp_swap_counter.total() / len(warp_swap_counter))
         else:
             for undo in reversed(undo_stack):
                 undo()
