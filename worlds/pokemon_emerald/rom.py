@@ -57,9 +57,9 @@ def generate_output(modified_data: PokemonEmeraldData, multiworld: MultiWorld, p
 
     for new_warp_encoded in modified_data.warp_map.values():
         new_warp = Warp(new_warp_encoded)
+        source_map = [m for m in data.maps if m.name == new_warp.source_map][0]
         for warp_id in new_warp.source_ids:
-            source_map = [m for m in data.maps if m.name == new_warp.source_map][0]
-            patched_rom[source_map.warp_table_rom_address + (warp_id * 8) + 4] = new_warp.dest_ids[0]
+            patched_rom[source_map.warp_table_rom_address + (warp_id * 8) + 5] = new_warp.dest_ids[0]
             _set_bytes_little_endian(
                 patched_rom,
                 source_map.warp_table_rom_address + (warp_id * 8) + 6,

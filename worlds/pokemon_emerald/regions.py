@@ -52,7 +52,16 @@ def create_regions(multiworld: MultiWorld, player: int) -> None:
     multiworld.regions += regions.values()
 
 
-unrandomizable_warps = {
+_unrandomizable_warps = {
+    "MAP_LITTLEROOT_TOWN:1/MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F:1",
+    "MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F:0,1/MAP_LITTLEROOT_TOWN:1",
+    "MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F:2/MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F:0",
+    "MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F:0/MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F:2",
+    "MAP_LITTLEROOT_TOWN:0/MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F:1",
+    "MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F:0,1/MAP_LITTLEROOT_TOWN:0",
+    "MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F:2/MAP_LITTLEROOT_TOWN_MAYS_HOUSE_2F:0",
+    "MAP_LITTLEROOT_TOWN_MAYS_HOUSE_2F:0/MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F:2",
+
     "MAP_EVER_GRANDE_CITY_POKEMON_LEAGUE_1F:2,3/MAP_EVER_GRANDE_CITY_HALL5:0",
     "MAP_EVER_GRANDE_CITY_HALL5:0,2,3/MAP_EVER_GRANDE_CITY_POKEMON_LEAGUE_1F:2",
     "MAP_EVER_GRANDE_CITY_HALL5:1/MAP_EVER_GRANDE_CITY_SIDNEYS_ROOM:0",
@@ -70,8 +79,11 @@ unrandomizable_warps = {
     "MAP_EVER_GRANDE_CITY_HALL3:1/MAP_EVER_GRANDE_CITY_DRAKES_ROOM:0",
     "MAP_EVER_GRANDE_CITY_DRAKES_ROOM:0/MAP_EVER_GRANDE_CITY_HALL3:1",
     "MAP_EVER_GRANDE_CITY_DRAKES_ROOM:1/MAP_EVER_GRANDE_CITY_HALL4:0",
+    "MAP_EVER_GRANDE_CITY_HALL4:0/MAP_EVER_GRANDE_CITY_DRAKES_ROOM:1",
     "MAP_EVER_GRANDE_CITY_CHAMPIONS_ROOM:0/MAP_EVER_GRANDE_CITY_HALL4:1",
+    "MAP_EVER_GRANDE_CITY_HALL4:1/MAP_EVER_GRANDE_CITY_CHAMPIONS_ROOM:0",
     "MAP_EVER_GRANDE_CITY_CHAMPIONS_ROOM:1/MAP_EVER_GRANDE_CITY_HALL_OF_FAME:0"
+    "MAP_EVER_GRANDE_CITY_HALL_OF_FAME:0/MAP_EVER_GRANDE_CITY_CHAMPIONS_ROOM:1"
 }
 
 
@@ -80,10 +92,10 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
     warp_swap_counter: Counter[str] = Counter({
         warp: 0
         for warp in multiworld.worlds[player].modified_data.warp_destinations.keys()
-        if warp not in unrandomizable_warps
+        if warp not in _unrandomizable_warps
     })
 
-    def rotate_entrances(*entrance_pairs: Tuple[Entrance, Entrance]):
+    def rotate_entrances(*entrance_pairs: Tuple[Entrance, Entrance]) -> Callable[[], None]:
         """
         For two-way warps, shift their connections over by one in the list of pairs. For example:
 
@@ -107,12 +119,12 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
             AB.connected_region.entrances.remove(AB)
             AB.connect(BA_next.parent_region)
             multiworld.worlds[player].modified_data.warp_destinations[AB.name] = BA_next.name
-            multiworld.worlds[player].modified_data.warp_map[AB.name] = f"{AB.name.split('/')[0]}/{BA_next.name.split('/')[1]}"
+            multiworld.worlds[player].modified_data.warp_map[AB.name] = f"{AB.name.split('/')[0]}/{BA_next.name.split('/')[0]}"
 
             BA.connected_region.entrances.remove(BA)
             BA.connect(AB_prev.parent_region)
             multiworld.worlds[player].modified_data.warp_destinations[BA.name] = AB_prev.name
-            multiworld.worlds[player].modified_data.warp_map[BA.name] = f"{BA.name.split('/')[0]}/{AB_prev.name.split('/')[1]}"
+            multiworld.worlds[player].modified_data.warp_map[BA.name] = f"{BA.name.split('/')[0]}/{AB_prev.name.split('/')[0]}"
 
             warp_swap_counter.update({AB.name: 1})
             warp_swap_counter.update({BA.name: 1})
@@ -122,12 +134,12 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
                 AB.connected_region.entrances.remove(AB)
                 AB.connect(BA.parent_region)
                 multiworld.worlds[player].modified_data.warp_destinations[AB.name] = BA.name
-                multiworld.worlds[player].modified_data.warp_map[AB.name] = f"{AB.name.split('/')[0]}/{BA.name.split('/')[1]}"
+                multiworld.worlds[player].modified_data.warp_map[AB.name] = f"{AB.name.split('/')[0]}/{BA.name.split('/')[0]}"
 
                 BA.connected_region.entrances.remove(BA)
                 BA.connect(AB.parent_region)
                 multiworld.worlds[player].modified_data.warp_destinations[BA.name] = AB.name
-                multiworld.worlds[player].modified_data.warp_map[BA.name] = f"{BA.name.split('/')[0]}/{AB.name.split('/')[1]}"
+                multiworld.worlds[player].modified_data.warp_map[BA.name] = f"{BA.name.split('/')[0]}/{AB.name.split('/')[0]}"
 
                 warp_swap_counter.subtract({AB.name: 1})
                 warp_swap_counter.subtract({BA.name: 1})
@@ -157,7 +169,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
             pairs: List[Tuple[Entrance, Entrance]] = []
 
             # Varies the number of pairs in the rotation for more diverse outcomes
-            num_pairs = multiworld.worlds[player].random.randrange(2, 5)
+            num_pairs = multiworld.worlds[player].random.randrange(2, 6)
 
             for _j in range(num_pairs):
                 while True and panic_counter < 10000:
@@ -165,15 +177,17 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
                     AB = multiworld.get_entrance(multiworld.worlds[player].random.choice(candidate_warps), player)
                     BA = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_destinations[AB.name], player)
 
+                    assert not AB.name in _unrandomizable_warps
+                    assert not BA.name in _unrandomizable_warps
+
                     if multiworld.worlds[player].modified_data.warp_destinations[BA.name] != AB.name:
                         continue
                     if AB.name in warps_in_rotation or BA.name in warps_in_rotation:
                         continue
 
                     pairs.append((AB, BA))
+                    warps_in_rotation |= {AB.name, BA.name}
                     break
-
-                warps_in_rotation |= {AB.name, BA.name}
 
             undo_stack.append(rotate_entrances(*pairs))
 
@@ -188,7 +202,8 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         else:
             for undo in reversed(undo_stack):
                 undo()
-            assert(len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0)
+
+            assert len(all_regions - multiworld.get_all_state(False).reachable_regions[player]) == 0
 
             group_size = max(int(group_size / 2), 1)
             max_candidate_swaps += 1
