@@ -202,7 +202,11 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         if world.hm_shuffle_info is not None or world.badge_shuffle_info is not None:
             all_state.sweep_for_events()
 
-        return len(all_regions - all_state.reachable_regions[player]) == 0
+        reachable_regions = all_state.reachable_regions[player]
+
+        assert not len(reachable_regions) == len(all_regions) ^ len(all_regions - reachable_regions) == 0
+
+        return len(reachable_regions) == len(all_regions)
 
     group_size = 1  # Controls the number of rotations to do before checking connectedness
     max_candidate_swaps = 0  # The maximum number of times a warp can have already been swapped before being considered
@@ -212,12 +216,11 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         panic_counter += 1
 
         # A list of warps we're allowed to swap this iteration
-        # sorted for reproducibility
-        candidate_warps = sorted([
+        candidate_warps = [
             warp
-            for warp in warp_swap_counter.keys()
+            for warp in warp_swap_counter
             if warp_swap_counter[warp] <= max_candidate_swaps
-        ])
+        ]
 
         undo_stack: List[Callable[[], None]] = []
         for _i in range(group_size if group_size > 3 else 1):
@@ -228,7 +231,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
             num_pairs = multiworld.worlds[player].random.randrange(2, 6)
 
             for _j in range(num_pairs):
-                while True and panic_counter < 10000:
+                while panic_counter < 10000:
                     panic_counter += 1
                     AB = multiworld.get_entrance(multiworld.worlds[player].random.choice(candidate_warps), player)
                     BA = multiworld.get_entrance(multiworld.worlds[player].modified_data.warp_destinations[AB.name], player)
