@@ -1,7 +1,7 @@
 """
 Option definitions for Pokemon Emerald
 """
-from typing import Dict
+from typing import Dict, Type
 
 from Options import Choice, DefaultOnToggle, Option, OptionSet, Range, Toggle, FreeText
 
@@ -552,6 +552,7 @@ class EasterEgg(FreeText):
     """
     ???
     """
+    default = "Example Passphrase"
 
 
 option_definitions: Dict[str, Option] = {
