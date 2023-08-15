@@ -118,7 +118,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
     # Counter keeps track of which warps can be randomized and how many times each one has been involved in a swap
     warp_swap_counter: Counter[str] = Counter({
         warp: 0
-        for warp in multiworld.worlds[player].modified_data.warp_destinations.keys()
+        for warp in multiworld.worlds[player].modified_data.warp_map.keys()
         if warp not in _unrandomizable_warps
     })
 
@@ -181,19 +181,16 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
 
         for item in multiworld.itempool:
             if item.player == player:
-                world.collect(all_state, item)
+                all_state.collect(item)
 
         # Enabling either HM/Badge shuffle seems to increase warp rando time by ~80% because of this
         if world.hm_shuffle_info is not None:
             for _, item in world.hm_shuffle_info:
-                world.collect(all_state, item)
+                all_state.collect(item)
 
         if world.badge_shuffle_info is not None:
             for _, item in world.badge_shuffle_info:
-                world.collect(all_state, item)
-
-        if world.hm_shuffle_info is not None or world.badge_shuffle_info is not None:
-            all_state.sweep_for_events()
+                all_state.collect(item)
 
         reachable_regions = all_state.reachable_regions[player]
 
@@ -250,7 +247,7 @@ def shuffle_warps(multiworld: MultiWorld, player: int):
         if is_map_fully_connected():
             num_swaps += group_size
             group_size += 1
-            max_candidate_swaps = int(warp_swap_counter.total() / len(warp_swap_counter))
+            max_candidate_swaps = int(sum(warp_swap_counter.values()) / len(warp_swap_counter))  # Counter.total() in Python 3.10
         else:
             for undo in reversed(undo_stack):
                 undo()
