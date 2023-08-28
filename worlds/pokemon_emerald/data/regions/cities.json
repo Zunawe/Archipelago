@@ -2464,9 +2464,7 @@
   "REGION_EVER_GRANDE_CITY/SEA": {
     "parent_map": "MAP_EVER_GRANDE_CITY",
     "locations": [],
-    "events": [
-      "EVENT_VISITED_EVER_GRANDE_CITY"
-    ],
+    "events": [],
     "exits": [
       "REGION_EVER_GRANDE_CITY/SOUTH",
       "REGION_ROUTE128/MAIN"
@@ -2476,7 +2474,9 @@
   "REGION_EVER_GRANDE_CITY/SOUTH": {
     "parent_map": "MAP_EVER_GRANDE_CITY",
     "locations": [],
-    "events": [],
+    "events": [
+      "EVENT_VISITED_EVER_GRANDE_CITY"
+    ],
     "exits": [
       "REGION_EVER_GRANDE_CITY/SEA"
     ],
