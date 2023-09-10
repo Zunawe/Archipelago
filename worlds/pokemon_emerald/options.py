@@ -96,6 +96,13 @@ class RandomizeNpcGifts(Toggle):
     display_name = "Randomize NPC Gifts"
 
 
+class RandomizeBerryTrees(Toggle):
+    """
+    Adds berry trees to the pool as Sitrus berries
+    """
+    display_name = "Randomize Berry Trees"
+
+
 class ItemPoolType(Choice):
     """
     Determines which non-progression items get put into the item pool
@@ -449,6 +456,30 @@ class BlindTrainers(Toggle):
     display_name = "Blind Trainers"
 
 
+class MatchTrainerLevels(Toggle):
+    """
+    When you start a battle with a trainer, your party's levels will be automatically set to match that trainer.
+
+    The experience you receive will match your party's average actual level, and will only be awarded when you win the battle.
+
+    This is a pseudo-replacement for a level cap and makes every trainer battle a fair fight while still allowing you to level up.
+    """
+    display_name = "Match Trainer Levels"
+
+
+class MatchTrainerLevelsMultiplier(Range):
+    """
+    The percent multiplier to apply to your team's levels when matching an opponent's levels.
+    For example, a value of 50 in a battle with a trainer using level 16 pokemon would set your team's levels to 8.
+
+    Only used when match trainer levels is enabled.
+    """
+    display_name = "Match Trainer Levels Multiplier"
+    range_start = 1
+    range_end = 200
+    default = 100
+
+
 class DoubleBattleChance(Range):
     """
     The percent chance that a trainer with more than 1 pokemon will be converted into a double battle.
@@ -539,10 +570,37 @@ class ReceiveItemMessages(Choice):
     option_none = 2
 
 
+class RemoteItems(Toggle):
+    """
+    Instead of placing your own items directly into the ROM, all items are received from the server, including items you find for yourself.
+
+    This enables co-op of a single slot and recovering more items after a lost save file (if you're so unlucky).
+    But it changes pickup behavior slightly and obviously requires connection to the server to receive any items.
+    """
+    display_name = "Remote Items"
+
+
+class RandomizeMusic(Toggle):
+    """
+    Shuffles music played in any situation where it loops. Includes many FRLG tracks.
+    """
+    display_name = "Randomize Music"
+
+
+class RandomizeFanfares(Toggle):
+    """
+    Shuffles fanfares for item pickups, healing at the pokecenter, etc...
+    """
+    display_name = "Randomize Fanfares"
+
+
 class EasterEgg(FreeText):
     """
-    ???
+    Enter certain phrases and something special might happen.
+
+    All secret phrases are something that could be a trendy phrase in Dewford Town. They are case insensitive.
     """
+    default = "EMERALD SECRET"
 
 
 option_definitions: Dict[str, Option] = {
@@ -555,6 +613,7 @@ option_definitions: Dict[str, Option] = {
     "overworld_items": RandomizeOverworldItems,
     "hidden_items": RandomizeHiddenItems,
     "npc_gifts": RandomizeNpcGifts,
+    "berry_trees": RandomizeBerryTrees,
 
     "item_pool_type": ItemPoolType,
 
@@ -589,6 +648,8 @@ option_definitions: Dict[str, Option] = {
     "guaranteed_catch": GuaranteedCatch,
     "exp_modifier": ExpModifier,
     "blind_trainers": BlindTrainers,
+    "match_trainer_levels": MatchTrainerLevels,
+    "match_trainer_levels_multiplier": MatchTrainerLevelsMultiplier,
     "double_battle_chance": DoubleBattleChance,
     "better_shops": BetterShops,
     "remove_roadblocks": RemoveRoadblocks,
@@ -597,6 +658,10 @@ option_definitions: Dict[str, Option] = {
     "fly_without_badge": FlyWithoutBadge,
     "turbo_a": TurboA,
     "receive_item_messages": ReceiveItemMessages,
+    "remote_items": RemoteItems,
+
+    "music": RandomizeMusic,
+    "fanfares": RandomizeFanfares,
 
     "easter_egg": EasterEgg
 }
