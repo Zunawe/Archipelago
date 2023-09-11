@@ -965,9 +965,9 @@ def _init() -> None:
 
     data.maps.sort(key=lambda map: map.name)
 
-    # Create warp map
+    # Create warp destination map
     for warp, destination in extracted_data["warps"].items():
-        data.warp_map[warp] = None if destination == "" else destination
+        data.warp_destinations[warp] = None if destination == "" else destination
 
     # Create trainer data
     for i, trainer_json in enumerate(extracted_data["trainers"]):

@@ -242,7 +242,7 @@ def validate_regions() -> bool:
                 error(f"Pokemon Emerald: Region [{region_exit}] referenced by [{name}] was not defined")
 
     # Check warps
-    for warp_source, warp_dest in data.warp_map.items():
+    for warp_source, warp_dest in data.warp_destinations.items():
         if warp_source in _ignorable_warps:
             continue
 
