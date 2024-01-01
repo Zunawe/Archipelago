@@ -106,7 +106,8 @@ def get_random_species(
         candidates: List[Optional[SpeciesData]],
         nearby_bst: Optional[int] = None,
         species_type: Optional[int] = None,
-        blacklist: Set[int] = set()) -> SpeciesData:
+        blacklist: Set[int] = set(),
+        force_fully_evolved: bool = False) -> SpeciesData:
     filtered_candidates: List[SpeciesData] = [
         species
         for species in candidates
@@ -131,6 +132,9 @@ def get_random_species(
             ]
 
         filtered_candidates = bst_filtered_candidates
+
+    if force_fully_evolved is not None and nearby_bst is None:
+        filtered_candidates = [species for species in filtered_candidates if len(species.evolutions) == 0]
 
     if len(filtered_candidates) == 0:
         return get_random_species(random, candidates, nearby_bst, species_type, LEGENDARY_POKEMON)
