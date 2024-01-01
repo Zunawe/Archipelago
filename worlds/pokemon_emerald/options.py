@@ -347,6 +347,16 @@ class AllowTrainerLegendaries(DefaultOnToggle):
     display_name = "Allow Trainer Legendaries"
 
 
+class ForceFullyEvolved(Range):
+    """
+    Level at which trainer pokemons would be forced to be fully evolved. Has no effect unless trainer parties are randomized. Set to 0 to disable.
+    """
+    display_name = "Force fully evolved"
+    range_start = 0
+    range_end = 40
+    default = 0
+
+
 class RandomizeStaticEncounters(Choice):
     """
     Randomizes static encounters (Rayquaza, hidden Kekleons, fake Voltorb pokeballs, etc...)
@@ -774,6 +784,7 @@ class PokemonEmeraldOptions(PerGameCommonOptions):
     match_trainer_levels: MatchTrainerLevels
     match_trainer_levels_bonus: MatchTrainerLevelsBonus
     double_battle_chance: DoubleBattleChance
+    force_fully_evolved: ForceFullyEvolved
     better_shops: BetterShops
 
     remove_roadblocks: RemoveRoadblocks

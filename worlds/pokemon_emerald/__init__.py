@@ -839,6 +839,7 @@ class PokemonEmeraldWorld(World):
                 RandomizeTrainerParties.option_match_base_stats_and_type
             }
             allow_legendaries = self.options.allow_trainer_legendaries == Toggle.option_true
+            force_fully_evolved_at = self.options.force_fully_evolved.value
 
             per_species_tmhm_moves: Dict[int, List[int]] = {}
 
@@ -848,13 +849,15 @@ class PokemonEmeraldWorld(World):
                     original_species = emerald_data.species[pokemon.species_id]
                     target_bst = sum(original_species.base_stats) if should_match_bst else None
                     target_type = self.random.choice(original_species.types) if should_match_type else None
+                    force_fully_evolved = force_fully_evolved_at != 0 and pokemon.level >= force_fully_evolved_at
 
                     new_species = get_random_species(
                         self.random,
                         self.modified_species,
                         target_bst,
                         target_type,
-                        LEGENDARY_POKEMON if allow_legendaries else set()
+                        LEGENDARY_POKEMON if allow_legendaries else set(),
+                        force_fully_evolved
                     )
 
                     if new_species.species_id not in per_species_tmhm_moves:
