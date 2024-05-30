@@ -10,7 +10,6 @@ from worlds.Files import APProcedurePatch, APTokenMixin, APTokenTypes
 from settings import get_settings
 
 from .data import TrainerPokemonDataTypeEnum, BASE_OFFSET, data
-from .items import reverse_offset_item_value
 from .options import (RandomizeWildPokemon, RandomizeTrainerParties, EliteFourRequirement, NormanRequirement,
                       MatchTrainerLevels)
 from .locations import PokemonEmeraldLocation
@@ -302,7 +301,7 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
 
     for i, slot in enumerate(pc_slots):
         address = data.rom_addresses["sNewGamePCItems"] + (i * 4)
-        item = reverse_offset_item_value(world.item_name_to_id[slot[0]])
+        item = world.item_name_to_id[slot[0]] - BASE_OFFSET
         patch.write_token(APTokenTypes.WRITE, address + 0, struct.pack("<H", item))
         patch.write_token(APTokenTypes.WRITE, address + 2, struct.pack("<H", slot[1]))
 

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional, FrozenSet, Iterable, Uni
 from BaseClasses import Location, Region
 
 from .data import BASE_OFFSET, NATIONAL_ID_TO_SPECIES_ID, POKEDEX_OFFSET, data
-from .items import offset_item_value
 
 if TYPE_CHECKING:
     from . import PokemonEmeraldWorld
@@ -92,27 +91,9 @@ class PokemonEmeraldLocation(Location):
             default_item_value: Optional[int] = None,
             tags: FrozenSet[str] = frozenset()) -> None:
         super().__init__(player, name, address, parent)
-        self.default_item_code = None if default_item_value is None else offset_item_value(default_item_value)
+        self.default_item_code = None if default_item_value is None else default_item_value + BASE_OFFSET
         self.item_address = item_address
         self.tags = tags
-
-
-def offset_flag(flag: int) -> int:
-    """
-    Returns the AP location id (address) for a given flag
-    """
-    if flag is None:
-        return None
-    return flag + BASE_OFFSET
-
-
-def reverse_offset_flag(location_id: int) -> int:
-    """
-    Returns the flag id for a given AP location id (address)
-    """
-    if location_id is None:
-        return None
-    return location_id - BASE_OFFSET
 
 
 def create_locations_with_tags(world: "PokemonEmeraldWorld", regions: Dict[str, Region], tags: Iterable[str]) -> None:
@@ -129,7 +110,7 @@ def create_locations_with_tags(world: "PokemonEmeraldWorld", regions: Dict[str, 
         for location_name in filtered_locations:
             location_data = data.locations[location_name]
 
-            location_id = offset_flag(location_data.flag)
+            location_id = location_data.flag + BASE_OFFSET
             if location_data.flag == 0:  # Dexsanity location
                 national_dex_id = int(location_name[-3:])  # Location names are formatted POKEDEX_REWARD_###
 
@@ -161,9 +142,9 @@ def create_location_label_to_id_map() -> Dict[str, int]:
             location_data = data.locations[location_name]
 
             if location_data.flag == 0:
-                label_to_id_map[location_data.label] = BASE_OFFSET + POKEDEX_OFFSET + int(location_data.name[15:])
+                label_to_id_map[location_data.label] = int(location_data.name[15:]) + BASE_OFFSET + POKEDEX_OFFSET
             else:
-                label_to_id_map[location_data.label] = offset_flag(location_data.flag)
+                label_to_id_map[location_data.label] = location_data.flag + BASE_OFFSET
 
     return label_to_id_map
 
