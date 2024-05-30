@@ -1,7 +1,7 @@
 """
 Classes and functions related to AP locations for Pokemon Emerald
 """
-from typing import TYPE_CHECKING, Dict, Optional, FrozenSet, Iterable
+from typing import TYPE_CHECKING, Dict, List, Optional, FrozenSet, Iterable, Union
 
 from BaseClasses import Location, Region
 
@@ -78,7 +78,7 @@ VISITED_EVENT_NAME_TO_ID = {
 
 class PokemonEmeraldLocation(Location):
     game: str = "Pokemon Emerald"
-    item_address: Optional[int]
+    item_address: Optional[Union[int, List[int]]]
     default_item_code: Optional[int]
     tags: FrozenSet[str]
 
@@ -218,7 +218,7 @@ def set_legendary_cave_entrances(world: "PokemonEmeraldWorld") -> None:
         "MARINE_CAVE_ROUTE_127_1",
         "MARINE_CAVE_ROUTE_127_2",
         "MARINE_CAVE_ROUTE_129_1",
-        # "MARINE_CAVE_ROUTE_129_2",  # Cave ID too high for internal data type, needs patch update
+        "MARINE_CAVE_ROUTE_129_2",
     ])
 
     marine_cave_location_location = world.multiworld.get_location("MARINE_CAVE_LOCATION", world.player)

@@ -13,6 +13,7 @@ from .data import TrainerPokemonDataTypeEnum, BASE_OFFSET, data
 from .items import reverse_offset_item_value
 from .options import (RandomizeWildPokemon, RandomizeTrainerParties, EliteFourRequirement, NormanRequirement,
                       MatchTrainerLevels)
+from .locations import PokemonEmeraldLocation
 from .pokemon import HM_MOVES, get_random_move
 from .util import bool_array_to_int, encode_string, get_easter_egg
 
@@ -124,11 +125,12 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
 
     location_info: List[Tuple[int, int, str]] = []
     for location in world.multiworld.get_locations(world.player):
-        if location.address is None:
+        assert isinstance(location, PokemonEmeraldLocation)
+
+        if location.address is None or location.item is None:
             continue
 
-        if location.item is None:
-            continue
+        assert type(location.item.code) is int
 
         # Set local item values
         if not world.options.remote_items and location.item.player == world.player:
@@ -211,8 +213,8 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
             player_name = world.multiworld.player_name[item_player]
 
             if player_name not in player_name_ids:
-                # Only space for 50 player names
-                if len(player_name_ids) >= 50:
+                # Only space for 250 player names
+                if len(player_name_ids) >= 250:
                     continue
 
                 player_name_ids[player_name] = len(player_name_ids)
@@ -228,7 +230,7 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
                     item_name = item_name[:34] + "…"
 
                 # Only 36 * 250 bytes for item names
-                if next_item_name_offset + len(item_name) + 1 > 36 * 250:
+                if next_item_name_offset + len(item_name) + 1 > 36 * 500:
                     continue
 
                 item_name_offsets[item_name] = next_item_name_offset
@@ -530,8 +532,9 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
             patch.write_token(APTokenTypes.WRITE, options_address + 0x18, struct.pack("<B", bitfield))
 
     # Set terra/marine cave locations
-    terra_cave_id = CAVE_EVENT_NAME_TO_ID[world.multiworld.get_location("TERRA_CAVE_LOCATION", world.player).item.name]
-    marine_cave_id = CAVE_EVENT_NAME_TO_ID[world.multiworld.get_location("MARINE_CAVE_LOCATION", world.player).item.name]
+    # Subtract 1 from ids so all possible ids fit into 4 bits
+    terra_cave_id = CAVE_EVENT_NAME_TO_ID[world.multiworld.get_location("TERRA_CAVE_LOCATION", world.player).item.name] - 1
+    marine_cave_id = CAVE_EVENT_NAME_TO_ID[world.multiworld.get_location("MARINE_CAVE_LOCATION", world.player).item.name] - 1
     patch.write_token(
         APTokenTypes.WRITE,
         options_address + 0x21,
