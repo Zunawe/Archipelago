@@ -135,6 +135,9 @@ class PokemonEmeraldClient(BizHawkClient):
     previous_death_link: float
     ignore_next_death_link: bool
 
+    current_map: Optional[int]
+    last_encounter_data: Optional[bytes]
+
     def __init__(self) -> None:
         super().__init__()
         self.local_checked_locations = set()
@@ -148,6 +151,8 @@ class PokemonEmeraldClient(BizHawkClient):
         self.death_counter = None
         self.previous_death_link = 0
         self.ignore_next_death_link = False
+        self.current_map = None
+        self.last_encounter_data = None
 
     async def validate_rom(self, ctx: "BizHawkClientContext") -> bool:
         from CommonClient import logger
@@ -241,6 +246,7 @@ class PokemonEmeraldClient(BizHawkClient):
             sb1_address = int.from_bytes(guards["SAVE BLOCK 1"][1], "little")
             sb2_address = int.from_bytes(guards["SAVE BLOCK 2"][1], "little")
 
+            await self.handle_data_storage(ctx, guards)
             await self.handle_death_link(ctx, guards)
             await self.handle_received_items(ctx, guards)
             await self.handle_wonder_trade(ctx, guards)
@@ -400,6 +406,50 @@ class PokemonEmeraldClient(BizHawkClient):
         except bizhawk.RequestFailedError:
             # Exit handler and return to main loop to reconnect
             pass
+
+    async def handle_data_storage(self, ctx: "BizHawkClientContext", guards: Dict[str, Tuple[int, bytes, str]]) -> None:
+        """
+        Sets some miscellaneous information on data storage
+        """
+        # Most recent wild encounter
+        last_encounter_data = (await bizhawk.read(
+            ctx.bizhawk_ctx,
+            [(data.ram_addresses["sMostRecentWildEncounter"], 6, "System Bus")]
+        ))[0]
+
+        if last_encounter_data != self.last_encounter_data:
+            await ctx.send_msgs([{
+                "cmd": "Set",
+                "key": f"pokemon_emerald_last_encounter_{ctx.team}_{ctx.slot}",
+                "want_reply": False,
+                "operations": [{"operation": "replace", "value": {
+                    "slot": last_encounter_data[0],
+                    "type": last_encounter_data[1],
+                    "map": int.from_bytes(last_encounter_data[2:4], "big"),
+                    "species": int.from_bytes(last_encounter_data[4:6], "little"),
+                }}],
+            }])
+
+        # Current map
+        sb1_address = int.from_bytes(guards["SAVE BLOCK 1"][1], "little")
+
+        read_result = await bizhawk.guarded_read(
+            ctx.bizhawk_ctx,
+            [(sb1_address + 0x4, 2, "System Bus")],
+            [guards["SAVE BLOCK 1"]]
+        )
+        if read_result is None:  # Save block moved
+            return
+
+        current_map = int.from_bytes(read_result[0], "big")
+        if current_map != self.current_map:
+            self.current_map = current_map
+            await ctx.send_msgs([{
+                "cmd": "Set",
+                "key": f"pokemon_emerald_map_{ctx.team}_{ctx.slot}",
+                "want_reply": False,
+                "operations": [{"operation": "replace", "value": current_map}],
+            }])
 
     async def handle_death_link(self, ctx: "BizHawkClientContext", guards: Dict[str, Tuple[int, bytes, str]]) -> None:
         """
