@@ -20,8 +20,6 @@ if TYPE_CHECKING:
     from worlds._bizhawk.context import BizHawkClientContext
 
 
-EXPECTED_ROM_NAME = "pokemon emerald version / AP 5"
-
 DEFEATED_WALLACE_FLAG = data.constants["TRAINER_FLAGS_START"] + data.constants["TRAINER_WALLACE"]
 DEFEATED_STEVEN_FLAG = data.constants["TRAINER_FLAGS_START"] + data.constants["TRAINER_STEVEN"]
 DEFEATED_NORMAN_FLAG = data.constants["TRAINER_FLAGS_START"] + data.constants["TRAINER_NORMAN_1"]
@@ -164,7 +162,7 @@ class PokemonEmeraldClient(BizHawkClient):
                 logger.info("ERROR: You appear to be running an unpatched version of Pokemon Emerald. "
                             "You need to generate a patch file and use it to create a patched ROM.")
                 return False
-            if rom_name != EXPECTED_ROM_NAME:
+            if rom_name != data.rom_name:
                 logger.info("ERROR: The patch file used to create this ROM is not compatible with "
                             "this client. Double check your client version against the version being "
                             "used by the generator.")
