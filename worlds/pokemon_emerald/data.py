@@ -191,31 +191,6 @@ class EvolutionMethodEnum(IntEnum):
     FRIENDSHIP_NIGHT = 11
 
 
-def _str_to_evolution_method(string: str) -> EvolutionMethodEnum:
-    if string == "LEVEL":
-        return EvolutionMethodEnum.LEVEL
-    if string == "LEVEL_ATK_LT_DEF":
-        return EvolutionMethodEnum.LEVEL_ATK_LT_DEF
-    if string == "LEVEL_ATK_EQ_DEF":
-        return EvolutionMethodEnum.LEVEL_ATK_EQ_DEF
-    if string == "LEVEL_ATK_GT_DEF":
-        return EvolutionMethodEnum.LEVEL_ATK_GT_DEF
-    if string == "LEVEL_SILCOON":
-        return EvolutionMethodEnum.LEVEL_SILCOON
-    if string == "LEVEL_CASCOON":
-        return EvolutionMethodEnum.LEVEL_CASCOON
-    if string == "LEVEL_NINJASK":
-        return EvolutionMethodEnum.LEVEL_NINJASK
-    if string == "LEVEL_SHEDINJA":
-        return EvolutionMethodEnum.LEVEL_SHEDINJA
-    if string == "FRIENDSHIP":
-        return EvolutionMethodEnum.FRIENDSHIP
-    if string == "FRIENDSHIP_DAY":
-        return EvolutionMethodEnum.FRIENDSHIP_DAY
-    if string == "FRIENDSHIP_NIGHT":
-        return EvolutionMethodEnum.FRIENDSHIP_NIGHT
-
-
 class EvolutionData(NamedTuple):
     method: EvolutionMethodEnum
     param: int
@@ -256,17 +231,6 @@ class TrainerPokemonDataTypeEnum(IntEnum):
     ITEM_DEFAULT_MOVES = 1
     NO_ITEM_CUSTOM_MOVES = 2
     ITEM_CUSTOM_MOVES = 3
-
-
-def _str_to_pokemon_data_type(string: str) -> TrainerPokemonDataTypeEnum:
-    if string == "NO_ITEM_DEFAULT_MOVES":
-        return TrainerPokemonDataTypeEnum.NO_ITEM_DEFAULT_MOVES
-    if string == "ITEM_DEFAULT_MOVES":
-        return TrainerPokemonDataTypeEnum.ITEM_DEFAULT_MOVES
-    if string == "NO_ITEM_CUSTOM_MOVES":
-        return TrainerPokemonDataTypeEnum.NO_ITEM_CUSTOM_MOVES
-    if string == "ITEM_CUSTOM_MOVES":
-        return TrainerPokemonDataTypeEnum.ITEM_CUSTOM_MOVES
 
 
 @dataclass
@@ -908,7 +872,7 @@ def _init() -> None:
             (species_data["types"][0], species_data["types"][1]),
             (species_data["abilities"][0], species_data["abilities"][1]),
             [EvolutionData(
-                _str_to_evolution_method(evolution_json["method"]),
+                EvolutionMethodEnum[evolution_json["method"]],
                 evolution_json["param"],
                 evolution_json["species"],
             ) for evolution_json in species_data["evolutions"]],
@@ -1413,7 +1377,7 @@ def _init() -> None:
     # Create trainer data
     for i, trainer_json in enumerate(extracted_data["trainers"]):
         party_json = trainer_json["party"]
-        pokemon_data_type = _str_to_pokemon_data_type(trainer_json["data_type"])
+        pokemon_data_type = TrainerPokemonDataTypeEnum[trainer_json["data_type"]]
         data.trainers.append(TrainerData(
             i,
             TrainerPartyData(
