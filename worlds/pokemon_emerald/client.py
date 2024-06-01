@@ -12,7 +12,7 @@ import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 
-from .data import BASE_OFFSET, POKEDEX_OFFSET, data
+from .data import BASE_OFFSET, NATIONAL_ID_TO_SPECIES_ID, POKEDEX_OFFSET, data
 from .options import Goal, RemoteItems
 from .util import pokemon_data_to_json, json_to_pokemon_data
 
@@ -246,7 +246,7 @@ class PokemonEmeraldClient(BizHawkClient):
             sb1_address = int.from_bytes(guards["SAVE BLOCK 1"][1], "little")
             sb2_address = int.from_bytes(guards["SAVE BLOCK 2"][1], "little")
 
-            await self.handle_data_storage(ctx, guards)
+            await self.handle_tracker_info(ctx, guards)
             await self.handle_death_link(ctx, guards)
             await self.handle_received_items(ctx, guards)
             await self.handle_wonder_trade(ctx, guards)
@@ -407,9 +407,9 @@ class PokemonEmeraldClient(BizHawkClient):
             # Exit handler and return to main loop to reconnect
             pass
 
-    async def handle_data_storage(self, ctx: "BizHawkClientContext", guards: Dict[str, Tuple[int, bytes, str]]) -> None:
+    async def handle_tracker_info(self, ctx: "BizHawkClientContext", guards: Dict[str, Tuple[int, bytes, str]]) -> None:
         """
-        Sets some miscellaneous information on data storage
+        Sends some tracker info
         """
         # Most recent wild encounter
         last_encounter_data = (await bizhawk.read(
@@ -418,16 +418,18 @@ class PokemonEmeraldClient(BizHawkClient):
         ))[0]
 
         if last_encounter_data != self.last_encounter_data:
+            self.last_encounter_data = last_encounter_data
             await ctx.send_msgs([{
-                "cmd": "Set",
-                "key": f"pokemon_emerald_last_encounter_{ctx.team}_{ctx.slot}",
-                "want_reply": False,
-                "operations": [{"operation": "replace", "value": {
+                "cmd": "Bounce",
+                "slots": [ctx.slot],
+                "tags": ["Tracker"],
+                "data": {
+                    "type": "Encounter",
                     "slot": last_encounter_data[0],
-                    "type": last_encounter_data[1],
-                    "map": int.from_bytes(last_encounter_data[2:4], "big"),
-                    "species": int.from_bytes(last_encounter_data[4:6], "little"),
-                }}],
+                    "encounterType": last_encounter_data[1],
+                    "mapId": int.from_bytes(last_encounter_data[2:4], "big"),
+                    "species": data.species[int.from_bytes(last_encounter_data[4:6], "little")].national_dex_number,
+                },
             }])
 
         # Current map
@@ -445,10 +447,13 @@ class PokemonEmeraldClient(BizHawkClient):
         if current_map != self.current_map:
             self.current_map = current_map
             await ctx.send_msgs([{
-                "cmd": "Set",
-                "key": f"pokemon_emerald_map_{ctx.team}_{ctx.slot}",
-                "want_reply": False,
-                "operations": [{"operation": "replace", "value": current_map}],
+                "cmd": "Bounce",
+                "slots": [ctx.slot],
+                "tags": ["Tracker"],
+                "data": {
+                    "type": "MapUpdate",
+                    "mapId": current_map,
+                },
             }])
 
     async def handle_death_link(self, ctx: "BizHawkClientContext", guards: Dict[str, Tuple[int, bytes, str]]) -> None:
