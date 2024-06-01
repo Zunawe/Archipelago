@@ -419,18 +419,21 @@ class PokemonEmeraldClient(BizHawkClient):
 
         if last_encounter_data != self.last_encounter_data:
             self.last_encounter_data = last_encounter_data
-            await ctx.send_msgs([{
-                "cmd": "Bounce",
-                "slots": [ctx.slot],
-                "tags": ["Tracker"],
-                "data": {
-                    "type": "Encounter",
-                    "slot": last_encounter_data[0],
-                    "encounterType": last_encounter_data[1],
-                    "mapId": int.from_bytes(last_encounter_data[2:4], "big"),
-                    "species": data.species[int.from_bytes(last_encounter_data[4:6], "little")].national_dex_number,
-                },
-            }])
+
+            species_id = int.from_bytes(last_encounter_data[4:6], "little")
+            if species_id != 0:
+                await ctx.send_msgs([{
+                    "cmd": "Bounce",
+                    "slots": [ctx.slot],
+                    "tags": ["Tracker"],
+                    "data": {
+                        "type": "Encounter",
+                        "slot": last_encounter_data[0],
+                        "encounterType": last_encounter_data[1],
+                        "mapId": int.from_bytes(last_encounter_data[2:4], "big"),
+                        "species": data.species[species_id].national_dex_number,
+                    },
+                }])
 
         # Current map
         sb1_address = int.from_bytes(guards["SAVE BLOCK 1"][1], "little")
