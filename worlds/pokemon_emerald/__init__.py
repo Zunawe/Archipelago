@@ -360,12 +360,12 @@ class PokemonEmeraldWorld(World):
         item_locations = [location for location in item_locations if len(filter_tags & location.tags) == 0]
         default_itempool = [self.create_item_by_code(location.default_item_code) for location in item_locations]
 
-        # Take the itempool as-is
-        if self.options.item_pool_type == ItemPoolType.option_shuffled:
+        if (all(weight == 0 for weight in self.options.custom_item_pool_weights.value.values())
+                and self.options.item_pool_type == ItemPoolType.option_shuffled):
+            # Take the itempool as-is
             self.multiworld.itempool += default_itempool
-
-        # Recreate the itempool from random items
-        elif self.options.item_pool_type in (ItemPoolType.option_diverse, ItemPoolType.option_diverse_balanced):
+        else:
+            # Recreate the itempool from random items
             item_categories = ["Ball", "Heal", "Candy", "Vitamin", "EvoStone", "Money", "TM", "Held", "Misc", "Berry"]
 
             # Count occurrences of types of vanilla items in pool
@@ -391,8 +391,14 @@ class PokemonEmeraldWorld(World):
             for category in fill_item_candidates_by_category:
                 fill_item_candidates_by_category[category].sort()
 
-            # Ignore vanilla occurrences and pick completely randomly
-            if self.options.item_pool_type == ItemPoolType.option_diverse:
+            if any(weight for weight in self.options.custom_item_pool_weights.value.values()):
+                # User specified custom weights, use those
+                item_category_weights: List[int] = [
+                    self.options.custom_item_pool_weights.value.get(category, 0)
+                    for category in fill_item_candidates_by_category
+                ]
+            elif self.options.item_pool_type == ItemPoolType.option_diverse:
+                # Ignore vanilla occurrences and pick completely randomly
                 item_category_weights = [
                     len(category_list)
                     for category_list in fill_item_candidates_by_category.values()

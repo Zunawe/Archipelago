@@ -3,7 +3,7 @@ Option definitions for Pokemon Emerald
 """
 from dataclasses import dataclass
 
-from Options import (Choice, DeathLink, DefaultOnToggle, OptionSet, NamedRange, Range, Toggle, FreeText,
+from Options import (Choice, DeathLink, DefaultOnToggle, OptionDict, OptionSet, NamedRange, Range, Toggle, FreeText,
                      PerGameCommonOptions)
 
 from .data import data
@@ -149,6 +149,14 @@ class ItemPoolType(Choice):
     option_shuffled = 0
     option_diverse_balanced = 1
     option_diverse = 2
+
+
+class CustomItemPoolWeights(OptionDict):
+    """
+    Overrides your item pool type option to specify your own weights for filler.
+    """
+    display_name = "Custom Item Pool Weights"
+    valid_keys = ["Ball", "Heal", "Candy", "Vitamin", "EvoStone", "Money", "TM", "Held", "Misc", "Berry"]
 
 
 class HiddenItemsRequireItemfinder(DefaultOnToggle):
@@ -815,6 +823,7 @@ class PokemonEmeraldOptions(PerGameCommonOptions):
     dexsanity: Dexsanity
     trainersanity: Trainersanity
     item_pool_type: ItemPoolType
+    custom_item_pool_weights: CustomItemPoolWeights
 
     require_itemfinder: HiddenItemsRequireItemfinder
     require_flash: DarkCavesRequireFlash
