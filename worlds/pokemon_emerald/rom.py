@@ -126,7 +126,7 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
     for location in world.multiworld.get_locations(world.player):
         assert isinstance(location, PokemonEmeraldLocation)
 
-        if location.address is None or location.item is None:
+        if location.is_event or location.item is None:
             continue
 
         assert type(location.item.code) is int
