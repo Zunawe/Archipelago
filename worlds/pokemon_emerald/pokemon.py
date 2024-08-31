@@ -8,7 +8,7 @@ from .data import (NUM_REAL_SPECIES, OUT_OF_LOGIC_MAPS, EncounterTableData, Lear
                    SpeciesData, data)
 from .options import (Goal, HmCompatibility, LevelUpMoves, RandomizeAbilities, RandomizeLegendaryEncounters,
                       RandomizeMiscPokemon, RandomizeStarters, RandomizeTypes, RandomizeWildPokemon,
-                      TmTutorCompatibility)
+                      TmTutorCompatibility, ModifyEncounterRates)
 from .util import bool_array_to_int, get_easter_egg, int_to_bool_array
 
 if TYPE_CHECKING:
@@ -334,8 +334,13 @@ def randomize_wild_encounters(world: "PokemonEmeraldWorld") -> None:
 
                 # Actually create the new list of slots and encounter table
                 new_slots: List[int] = []
-                for species_id in table.slots:
-                    new_slots.append(species_old_to_new_map[species_id])
+                if world.options.modify_encounter_rates == ModifyEncounterRates.option_species:
+                    new_species = list(species_old_to_new_map.values())
+                    for slot in range(len(table.slots)):
+                        new_slots.append(new_species[slot % len(new_species)])
+                else:
+                    for species_id in table.slots:
+                        new_slots.append(species_old_to_new_map[species_id])
 
                 new_encounters[i] = EncounterTableData(new_slots, table.address)
 

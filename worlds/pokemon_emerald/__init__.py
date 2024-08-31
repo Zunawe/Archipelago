@@ -22,7 +22,7 @@ from .locations import (LOCATION_GROUPS, PokemonEmeraldLocation, create_location
                         create_locations_with_tags, set_free_fly, set_legendary_cave_entrances)
 from .opponents import randomize_opponent_parties
 from .options import (Goal, DarkCavesRequireFlash, HmRequirements, ItemPoolType, PokemonEmeraldOptions,
-                      RandomizeWildPokemon, RandomizeBadges, RandomizeHms, NormanRequirement)
+                      RandomizeWildPokemon, RandomizeBadges, RandomizeHms, NormanRequirement, ModifyEncounterRates)
 from .pokemon import (get_random_move, get_species_id_by_label, randomize_abilities, randomize_learnsets,
                       randomize_legendary_encounters, randomize_misc_pokemon, randomize_starters,
                       randomize_tm_hm_compatibility,randomize_types, randomize_wild_encounters)
@@ -141,6 +141,12 @@ class PokemonEmeraldWorld(World):
         return "Great Ball"
 
     def generate_early(self) -> None:
+        if self.options.normalize_encounter_rates:
+            self.options.modify_encounter_rates.value = ModifyEncounterRates.option_slots
+            logging.warning('Pokemon Emerald: Player %s (%s) specified the "Normalize Encounter Rates" option, which '
+                            'has been deprecated in favor of "Modify Encounter Rates". Their options will be fixed '
+                            'automatically this time.',
+                            self.player, self.player_name)
         self.hm_requirements = {
             "HM01 Cut": ["Stone Badge"],
             "HM02 Fly": ["Feather Badge"],

@@ -4,7 +4,7 @@ Option definitions for Pokemon Emerald
 from dataclasses import dataclass
 
 from Options import (Choice, DeathLink, DefaultOnToggle, OptionSet, NamedRange, Range, Toggle, FreeText,
-                     PerGameCommonOptions)
+                     PerGameCommonOptions, Visibility)
 
 from .data import data
 
@@ -567,14 +567,24 @@ class GuaranteedCatch(Toggle):
 
 
 class NormalizeEncounterRates(Toggle):
-    """
-    Make every slot on an encounter table approximately equally likely.
+    visibility = Visibility.none
 
-    This does NOT mean each species is equally likely. In the vanilla game, each species may occupy more than one slot, and slots vary in probability.
-    
-    Species will still occupy the same slots as vanilla, but the slots will be equally weighted. The minimum encounter rate will be 8% (higher in water).
+
+class ModifyEncounterRates(Choice):
     """
-    display_name = "Normalize Encounter Rates"
+    Changes how likely any given pokemon is to be encountered when a wild battle starts.
+    
+    Does NOT change how often you get a wild encounter. Does NOT change how many species are on an encounter table.
+
+    - Off: Vanilla behavior; some species may be as rare as a 1% chance
+    - Slots: Each encounter slot is equally likely, but some species will take up more slots (minimum 8.3% chance)
+    - Species: Each encounter slot is equally likely and species are distributed approximately evenly (still minimum 8.3% chance, but more balanced)
+    """
+    display_name = "Modify Encounter Rates"
+    default = 0
+    option_off = 0
+    option_slots = 1
+    option_species = 2
 
 
 class ExpModifier(Range):
@@ -851,6 +861,7 @@ class PokemonEmeraldOptions(PerGameCommonOptions):
     min_catch_rate: MinCatchRate
     guaranteed_catch: GuaranteedCatch
     normalize_encounter_rates: NormalizeEncounterRates
+    modify_encounter_rates: ModifyEncounterRates
     exp_modifier: ExpModifier
     blind_trainers: BlindTrainers
     purge_spinners: PurgeSpinners

@@ -12,7 +12,7 @@ from settings import get_settings
 from .data import TrainerPokemonDataTypeEnum, BASE_OFFSET, data
 from .items import reverse_offset_item_value
 from .options import (RandomizeWildPokemon, RandomizeTrainerParties, EliteFourRequirement, NormanRequirement,
-                      MatchTrainerLevels)
+                      MatchTrainerLevels, ModifyEncounterRates)
 from .pokemon import HM_MOVES, get_random_move
 from .util import bool_array_to_int, encode_string, get_easter_egg
 
@@ -611,7 +611,7 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
     patch.write_token(
         APTokenTypes.WRITE,
         options_address + 0x2C,
-        struct.pack("<B", 1 if world.options.normalize_encounter_rates else 0)
+        struct.pack("<B", 0 if world.options.modify_encounter_rates == ModifyEncounterRates.option_off else 1)
     )
 
     # Set allow wonder trading
