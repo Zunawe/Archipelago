@@ -258,7 +258,7 @@ class AllowedLegendaryHuntEncounters(OptionSet):
         "Deoxys",
         "Mew",
     ]
-    default = valid_keys.copy()
+    default = frozenset(valid_keys)
 
 
 class RandomizeWildPokemon(Choice):

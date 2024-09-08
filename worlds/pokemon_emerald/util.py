@@ -1,5 +1,5 @@
 import orjson
-from typing import Any, Dict, List, Optional, Tuple, Iterable
+from typing import Any, Dict, List, Optional, Tuple, Iterable, Sequence
 
 from .data import NATIONAL_ID_TO_SPECIES_ID, data
 
@@ -153,7 +153,7 @@ _MODERN_ITEM_TO_EMERALD_ITEM = {
 }
 
 
-def _encrypt_or_decrypt_substruct(substruct_data: Iterable[int], key: int) -> bytearray:
+def _encrypt_or_decrypt_substruct(substruct_data: Sequence[int], key: int) -> bytearray:
     modified_data = bytearray()
     for i in range(int(len(substruct_data) / 4)):
         modified_data.extend((int.from_bytes(substruct_data[i * 4 : (i + 1) * 4], "little") ^ key).to_bytes(4, "little"))
@@ -161,7 +161,7 @@ def _encrypt_or_decrypt_substruct(substruct_data: Iterable[int], key: int) -> by
     return modified_data
 
 
-def pokemon_data_to_json(pokemon_data: Iterable[int]) -> str:
+def pokemon_data_to_json(pokemon_data: Sequence[int]) -> str:
     personality = int.from_bytes(pokemon_data[0:4], "little")
     tid = int.from_bytes(pokemon_data[4:8], "little")
 
@@ -335,12 +335,11 @@ def json_to_pokemon_data(json_str: str) -> bytearray:
     # Separator, 2 bytes
 
     substruct_order = [_SUBSTRUCT_ORDERS[pokemon_json["personality"] % 24].index(n) for n in [0, 1, 2, 3]]
-    encrypted_substructs = [None for _ in range(4)]
     encryption_key = pokemon_json["personality"] ^ pokemon_json["trainer"]["id"]
-    encrypted_substructs[0] = _encrypt_or_decrypt_substruct(substructs[substruct_order[0]], encryption_key)
-    encrypted_substructs[1] = _encrypt_or_decrypt_substruct(substructs[substruct_order[1]], encryption_key)
-    encrypted_substructs[2] = _encrypt_or_decrypt_substruct(substructs[substruct_order[2]], encryption_key)
-    encrypted_substructs[3] = _encrypt_or_decrypt_substruct(substructs[substruct_order[3]], encryption_key)
+    encrypted_substructs = [
+        _encrypt_or_decrypt_substruct(substructs[substruct_order[i]], encryption_key)
+        for i in range(4)
+    ]
 
     for i in range(4):
         for j in range(12):
