@@ -615,7 +615,6 @@ class PokemonEmeraldWorld(World):
         randomize_starters(self)
 
         patch = PokemonEmeraldProcedurePatch(player=self.player, player_name=self.player_name)
-        patch.write_file("base_patch.bsdiff4", pkgutil.get_data(__name__, "data/base_patch.bsdiff4"))
         write_tokens(self, patch)
 
         del self.modified_trainers

@@ -1,12 +1,16 @@
 """
 Classes and functions related to creating a ROM patch
 """
+import bsdiff4
 import copy
-import os
+import hashlib
+import json
+import pkgutil
 import struct
 from typing import TYPE_CHECKING, Dict, List, Tuple
+import zipfile
 
-from worlds.Files import APProcedurePatch, APTokenMixin, APTokenTypes
+from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
 from settings import get_settings
 
 from .data import TrainerPokemonDataTypeEnum, BASE_OFFSET, data
@@ -95,15 +99,30 @@ CAVE_EVENT_NAME_TO_ID = {
 }
 
 
+class PokemonEmeraldPatchExtension(APPatchExtension):
+    game = "Pokemon Emerald"
+
+    @staticmethod
+    def apply_emerald_base_patch(caller: "PokemonEmeraldProcedurePatch", rom: bytes) -> bytes:
+        base_patch = pkgutil.get_data(__name__, "data/base_patch.bsdiff4")
+        local_base_patch_checksum = hashlib.md5(base_patch).hexdigest()
+        if caller.base_patch_checksum != local_base_patch_checksum:
+            raise ValueError(f"This patch file is incompatible with your installed apworld. Expected base patch "
+                             f"checksum to be {local_base_patch_checksum}, but got {caller.base_patch_checksum}.")
+        return bsdiff4.patch(rom, base_patch)
+
+
 class PokemonEmeraldProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Pokemon Emerald"
     hash = "605b89b67018abcea91e693a4dd25be3"
     patch_file_ending = ".apemerald"
     result_file_ending = ".gba"
 
+    base_patch_checksum: str
+
     procedure = [
-        ("apply_bsdiff4", ["base_patch.bsdiff4"]),
-        ("apply_tokens", ["token_data.bin"])
+        ("apply_emerald_base_patch", []),
+        ("apply_tokens", ["token_data.bin"]),
     ]
 
     @classmethod
@@ -112,6 +131,17 @@ class PokemonEmeraldProcedurePatch(APProcedurePatch, APTokenMixin):
             base_rom_bytes = bytes(infile.read())
 
         return base_rom_bytes
+
+    def get_manifest(self):
+        manifest = super(PokemonEmeraldProcedurePatch, self).get_manifest()
+        manifest["base_patch_checksum"] = hashlib.md5(pkgutil.get_data(__name__, "data/base_patch.bsdiff4")).hexdigest()
+        return manifest
+
+    def read_contents(self, opened_zipfile: zipfile.ZipFile) -> None:
+        super(PokemonEmeraldProcedurePatch, self).read_contents(opened_zipfile)
+        with opened_zipfile.open("archipelago.json", "r") as f:
+            manifest = json.load(f)
+        self.base_patch_checksum = manifest["base_patch_checksum"]
 
 
 def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch) -> None:
