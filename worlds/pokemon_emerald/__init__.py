@@ -22,7 +22,8 @@ from .locations import (PokemonEmeraldLocation, create_location_label_to_id_map,
                         set_free_fly, set_legendary_cave_entrances)
 from .opponents import randomize_opponent_parties
 from .options import (Goal, DarkCavesRequireFlash, HmRequirements, ItemPoolType, PokemonEmeraldOptions,
-                      RandomizeWildPokemon, RandomizeBadges, RandomizeHms, NormanRequirement, OPTION_GROUPS)
+                      RandomizeWildPokemon, RandomizeBadges, RandomizeHms, NormanRequirement, AbilityBlacklist,
+                      OPTION_GROUPS)
 from .pokemon import (get_random_move, get_species_id_by_label, randomize_abilities, randomize_learnsets,
                       randomize_legendary_encounters, randomize_misc_pokemon, randomize_starters,
                       randomize_tm_hm_compatibility,randomize_types, randomize_wild_encounters)
@@ -145,6 +146,10 @@ class PokemonEmeraldWorld(World):
         return "Great Ball"
 
     def generate_early(self) -> None:
+        if all(ability in self.options.ability_blacklist.value for ability in AbilityBlacklist.valid_keys):
+            raise OptionError("Pokemon Emerald: At least one ability must not be blacklisted by player "
+                              f"{self.player} ({self.player_name})")
+
         self.hm_requirements = {
             "HM01 Cut": ["Stone Badge"],
             "HM02 Fly": ["Feather Badge"],
