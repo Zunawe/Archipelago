@@ -453,7 +453,6 @@ class PokemonEmeraldClient(BizHawkClient):
                 await ctx.send_msgs([{
                     "cmd": "Bounce",
                     "slots": [ctx.slot],
-                    "tags": ["Tracker"],
                     "data": {
                         "type": "Encounter",
                         "slot": last_encounter_data[0],
