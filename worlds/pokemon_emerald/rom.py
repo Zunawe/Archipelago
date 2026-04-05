@@ -2,16 +2,19 @@
 Classes and functions related to creating a ROM patch
 """
 import bsdiff4
+from collections import Counter
 import copy
 import hashlib
 import json
+import logging
 import pkgutil
 import struct
 from typing import TYPE_CHECKING, Dict, List, Tuple
 import zipfile
 
-from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
+from BaseClasses import ItemClassification
 from settings import get_settings
+from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
 
 from .data import TrainerPokemonDataTypeEnum, BASE_OFFSET, data
 from .options import (RandomizeWildPokemon, RandomizeTrainerParties, EliteFourRequirement, NormanRequirement,
@@ -291,50 +294,61 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
     easter_egg = get_easter_egg(world.options.easter_egg.value)
 
     # Set start inventory
-    start_inventory = world.options.start_inventory.value.copy()
+    precollected_items = Counter(
+        item.code - BASE_OFFSET
+        for item in world.multiworld.precollected_items[world.player]
+        if item.code is not None
+    )
 
-    starting_badges = 0
-    if start_inventory.pop("Stone Badge", 0) > 0:
-        starting_badges |= (1 << 0)
-    if start_inventory.pop("Knuckle Badge", 0) > 0:
-        starting_badges |= (1 << 1)
-    if start_inventory.pop("Dynamo Badge", 0) > 0:
-        starting_badges |= (1 << 2)
-    if start_inventory.pop("Heat Badge", 0) > 0:
-        starting_badges |= (1 << 3)
-    if start_inventory.pop("Balance Badge", 0) > 0:
-        starting_badges |= (1 << 4)
-    if start_inventory.pop("Feather Badge", 0) > 0:
-        starting_badges |= (1 << 5)
-    if start_inventory.pop("Mind Badge", 0) > 0:
-        starting_badges |= (1 << 6)
-    if start_inventory.pop("Rain Badge", 0) > 0:
-        starting_badges |= (1 << 7)
+    # Remove badges from precollected items, which aren't given as items
+    starting_badges = 0x00
+    for i in range(8):
+        if precollected_items.pop(data.constants[f"ITEM_BADGE_{i + 1}"], 0) > 0:
+            starting_badges |= (1 << i)
 
-    pc_slots: List[Tuple[str, int]] = []
-    while any(qty > 0 for qty in start_inventory.values()):
-        if len(pc_slots) >= 19:
-            break
+    for item_code in precollected_items:
+        if "Unique" in data.items[item_code].tags:
+            precollected_items[item_code] = 1
 
-        for i, item_name in enumerate(start_inventory.keys()):
-            if len(pc_slots) >= 19:
-                break
+    # Sort so that if we do have to cut items, we prioritize keeping progression items
+    inventory_items: list[tuple[int, int]] = sorted(
+        precollected_items.items(),
+        key=lambda slot: int(ItemClassification.progression in data.items[slot[0]].classification)
+    )
 
-            quantity = min(start_inventory[item_name], 999)
-            if quantity == 0:
-                continue
+    # Set start items in inventory. Stack up to 99.
+    for i, (item_code, quantity) in enumerate(inventory_items[:50]):
+        print(f"Setting start item: {data.items[item_code].label} (Quantity: {quantity})")
+        address = data.rom_addresses["sNewGameBagItems"] + (i * 4)
+        patch.write_token(APTokenTypes.WRITE, address + 0, struct.pack("<H", item_code))
+        patch.write_token(APTokenTypes.WRITE, address + 2, struct.pack("<H", min(quantity, 99)))
 
-            start_inventory[item_name] -= quantity
+        precollected_items[item_code] -= 99
+        if precollected_items[item_code] <= 0:
+            precollected_items.pop(item_code)
 
-            pc_slots.append((item_name, quantity))
+    pc_items: list[tuple[int, int]] = sorted(
+        precollected_items.items(),
+        key=lambda slot: int(ItemClassification.progression in data.items[slot[0]].classification)
+    )
 
-    pc_slots.sort(reverse=True)
-
-    for i, slot in enumerate(pc_slots):
+    # Remaining items go to PC. Stack up to 999.
+    for i, (item_code, quantity) in enumerate(pc_items[:19]):
         address = data.rom_addresses["sNewGamePCItems"] + (i * 4)
-        item = world.item_name_to_id[slot[0]] - BASE_OFFSET
-        patch.write_token(APTokenTypes.WRITE, address + 0, struct.pack("<H", item))
-        patch.write_token(APTokenTypes.WRITE, address + 2, struct.pack("<H", slot[1]))
+        patch.write_token(APTokenTypes.WRITE, address + 0, struct.pack("<H", item_code))
+        patch.write_token(APTokenTypes.WRITE, address + 2, struct.pack("<H", min(quantity, 999)))
+
+        precollected_items[item_code] -= 999
+        if precollected_items[item_code] <= 0:
+            precollected_items.pop(item_code)
+
+    if len(precollected_items) > 0:
+        # There are more slots in the ROM's start inventory than progression items, so there should be no case
+        # where a progression item gets pushed out.
+        assert all(ItemClassification.progression not in data.items[item_code].classification for item_code in precollected_items)
+        logging.warning("Not all precollected items could be added to the player's inventory or PC. "
+                        "The following items were not added: [%s].",
+                        ", ".join(f"{data.items[item_code].label}" for item_code in precollected_items))
 
     # Set species data
     _set_species_info(world, patch, easter_egg)
