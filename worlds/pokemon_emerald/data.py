@@ -14,6 +14,7 @@ import pkg_resources
 from BaseClasses import ItemClassification
 
 
+GAME_NAME = "Pokemon Emerald"
 BASE_OFFSET = 3860000
 POKEDEX_OFFSET = 10000
 

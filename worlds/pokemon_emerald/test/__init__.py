@@ -1,5 +1,6 @@
 from test.bases import WorldTestBase
+from ..data import GAME_NAME
 
 
 class PokemonEmeraldTestBase(WorldTestBase):
-    game = "Pokemon Emerald"
+    game = GAME_NAME

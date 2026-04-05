@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Set, Union, List
 
 from BaseClasses import Location, Region
 
-from .data import BASE_OFFSET, NATIONAL_ID_TO_SPECIES_ID, POKEDEX_OFFSET, LocationCategory, data
+from .data import BASE_OFFSET, GAME_NAME, NATIONAL_ID_TO_SPECIES_ID, POKEDEX_OFFSET, LocationCategory, data
 
 if TYPE_CHECKING:
     from . import PokemonEmeraldWorld
@@ -54,7 +54,7 @@ VISITED_EVENTS = frozenset(BLACKLIST_OPTION_TO_VISITED_EVENT.values())
 
 
 class PokemonEmeraldLocation(Location):
-    game: str = "Pokemon Emerald"
+    game: str = GAME_NAME
     item_address: Optional[Union[int, List[int]]]
     default_item_code: Optional[int]
     key: Optional[str]

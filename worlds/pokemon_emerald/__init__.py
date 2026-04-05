@@ -5,7 +5,6 @@ from collections import Counter
 import copy
 import logging
 import os
-import pkgutil
 from typing import Any, Set, List, Dict, Optional, Tuple, ClassVar, TextIO, Union
 
 from BaseClasses import CollectionState, ItemClassification, MultiWorld, Tutorial, LocationProgressType
@@ -15,7 +14,8 @@ import settings
 from worlds.AutoWorld import WebWorld, World
 
 from .client import PokemonEmeraldClient  # Unused, but required to register with BizHawkClient
-from .data import BASE_OFFSET, LEGENDARY_POKEMON, MapData, SpeciesData, TrainerData, LocationCategory, data as emerald_data
+from .data import (GAME_NAME, BASE_OFFSET, LEGENDARY_POKEMON, MapData, SpeciesData, TrainerData, LocationCategory,
+                   data as emerald_data)
 from .groups import ITEM_GROUPS, LOCATION_GROUPS
 from .items import PokemonEmeraldItem, create_item_label_to_code_map, get_item_classification
 from .locations import (PokemonEmeraldLocation, create_location_label_to_id_map, create_locations_by_category,
@@ -98,7 +98,7 @@ class PokemonEmeraldWorld(World):
     Catch, train, and battle Pokémon, explore the Hoenn region, thwart the plots
     of Team Magma and Team Aqua, challenge gyms, and become the Pokémon champion!
     """
-    game = "Pokemon Emerald"
+    game = GAME_NAME
     web = PokemonEmeraldWebWorld()
     topology_present = True
 

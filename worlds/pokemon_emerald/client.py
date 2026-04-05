@@ -12,7 +12,7 @@ import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 
-from .data import BASE_OFFSET, NATIONAL_ID_TO_SPECIES_ID, POKEDEX_OFFSET, data
+from .data import GAME_NAME, BASE_OFFSET, POKEDEX_OFFSET, data
 from .options import Goal, RemoteItems
 from .util import pokemon_data_to_json, json_to_pokemon_data
 
@@ -122,7 +122,7 @@ SHOAL_CAVE_MAPS = tuple(data.constants[map_name] for map_name in [
 
 
 class PokemonEmeraldClient(BizHawkClient):
-    game = "Pokemon Emerald"
+    game = GAME_NAME
     system = "GBA"
     patch_suffix = ".apemerald"
 

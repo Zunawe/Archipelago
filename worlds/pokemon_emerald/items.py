@@ -1,15 +1,15 @@
 """
 Classes and functions related to AP items for Pokemon Emerald
 """
-from typing import Dict, FrozenSet, Set, Optional
+from typing import Dict, FrozenSet, Optional
 
 from BaseClasses import Item, ItemClassification
 
-from .data import BASE_OFFSET, data
+from .data import BASE_OFFSET, GAME_NAME, data
 
 
 class PokemonEmeraldItem(Item):
-    game: str = "Pokemon Emerald"
+    game: str = GAME_NAME
     tags: FrozenSet[str]
 
     def __init__(self, name: str, classification: ItemClassification, code: Optional[int], player: int) -> None:

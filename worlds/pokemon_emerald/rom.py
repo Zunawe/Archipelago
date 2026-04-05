@@ -16,7 +16,7 @@ from BaseClasses import ItemClassification
 from settings import get_settings
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
 
-from .data import TrainerPokemonDataTypeEnum, BASE_OFFSET, data
+from .data import GAME_NAME, TrainerPokemonDataTypeEnum, BASE_OFFSET, data
 from .options import (RandomizeWildPokemon, RandomizeTrainerParties, EliteFourRequirement, NormanRequirement,
                       MatchTrainerLevels)
 from .locations import PokemonEmeraldLocation
@@ -103,7 +103,7 @@ CAVE_EVENT_NAME_TO_ID = {
 
 
 class PokemonEmeraldPatchExtension(APPatchExtension):
-    game = "Pokemon Emerald"
+    game = GAME_NAME
 
     @staticmethod
     def apply_emerald_base_patch(caller: "PokemonEmeraldProcedurePatch", rom: bytes) -> bytes:
@@ -116,7 +116,7 @@ class PokemonEmeraldPatchExtension(APPatchExtension):
 
 
 class PokemonEmeraldProcedurePatch(APProcedurePatch, APTokenMixin):
-    game = "Pokemon Emerald"
+    game = GAME_NAME
     hash = "605b89b67018abcea91e693a4dd25be3"
     patch_file_ending = ".apemerald"
     result_file_ending = ".gba"
@@ -318,7 +318,6 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
 
     # Set start items in inventory. Stack up to 99.
     for i, (item_code, quantity) in enumerate(inventory_items[:50]):
-        print(f"Setting start item: {data.items[item_code].label} (Quantity: {quantity})")
         address = data.rom_addresses["sNewGameBagItems"] + (i * 4)
         patch.write_token(APTokenTypes.WRITE, address + 0, struct.pack("<H", item_code))
         patch.write_token(APTokenTypes.WRITE, address + 2, struct.pack("<H", min(quantity, 99)))
