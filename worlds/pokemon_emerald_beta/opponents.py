@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Set
+from typing import TYPE_CHECKING
 
 from .data import NUM_REAL_SPECIES, UNEVOLVED_POKEMON, data
 from .options import RandomizeTrainerParties
@@ -24,7 +24,7 @@ def randomize_opponent_parties(world: "PokemonEmeraldWorld") -> None:
         RandomizeTrainerParties.option_match_base_stats_and_type,
     }
 
-    per_species_tmhm_moves: Dict[int, List[int]] = {}
+    per_species_tmhm_moves: dict[int, list[int]] = {}
 
     for trainer in world.modified_trainers:
         new_party = []
@@ -35,7 +35,7 @@ def randomize_opponent_parties(world: "PokemonEmeraldWorld") -> None:
             # collectively cover too much of the pokedex. A lower index in `blacklists`
             # indicates a more important set of species to avoid. Entries at `0` will
             # always be blacklisted.
-            blacklists: Dict[int, List[Set[int]]] = defaultdict(list)
+            blacklists: dict[int, list[set[int]]] = defaultdict(list)
 
             # Blacklist unevolved species
             if pokemon.level >= world.options.force_fully_evolved:
@@ -52,7 +52,7 @@ def randomize_opponent_parties(world: "PokemonEmeraldWorld") -> None:
                     if not bool(set(species.types) & set(original_species.types))
                 })
 
-            merged_blacklist: Set[int] = set()
+            merged_blacklist: set[int] = set()
             for max_priority in reversed(sorted(blacklists.keys())):
                 merged_blacklist = set()
                 for priority in blacklists.keys():
@@ -63,7 +63,7 @@ def randomize_opponent_parties(world: "PokemonEmeraldWorld") -> None:
                 if len(merged_blacklist) < NUM_REAL_SPECIES:
                     break
             else:
-                merged_blacklist: Set[int] = set()
+                merged_blacklist = set()
 
             candidates = [
                 species

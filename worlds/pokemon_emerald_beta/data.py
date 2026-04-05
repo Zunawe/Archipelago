@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import IntEnum, Enum
 from importlib.resources import files
 import orjson
-from typing import Dict, List, NamedTuple, Optional, Set, FrozenSet, Tuple, Any, Union
+from typing import NamedTuple, Any
 import pkgutil
 
 from BaseClasses import ItemClassification
@@ -50,12 +50,12 @@ class Warp:
     """
     is_one_way: bool
     source_map: str
-    source_ids: List[int]
+    source_ids: list[int]
     dest_map: str
-    dest_ids: List[int]
-    parent_region: Optional[str]
+    dest_ids: list[int]
+    parent_region: str | None
 
-    def __init__(self, encoded_string: Optional[str] = None, parent_region: Optional[str] = None) -> None:
+    def __init__(self, encoded_string: str | None = None, parent_region: str | None = None) -> None:
         if encoded_string is not None:
             decoded_warp = Warp.decode(encoded_string)
             self.is_one_way = decoded_warp.is_one_way
@@ -113,9 +113,9 @@ class Warp:
 class ItemData(NamedTuple):
     label: str
     item_id: int
-    modern_id: Optional[int]
+    modern_id: int | None
     classification: ItemClassification
-    tags: FrozenSet[str]
+    tags: frozenset[str]
 
 
 class LocationCategory(IntEnum):
@@ -138,14 +138,14 @@ class LocationData(NamedTuple):
     label: str
     parent_region: str
     default_item: int
-    address: Union[int, List[int]]
+    address: int | list[int]
     flag: int
     category: LocationCategory
-    tags: FrozenSet[str]
+    tags: frozenset[str]
 
 
 class EncounterTableData(NamedTuple):
-    slots: List[int]
+    slots: list[int]
     address: int
 
 
@@ -162,7 +162,7 @@ class MapData:
     name: str
     label: str
     header_address: int
-    encounters: Dict[EncounterType, EncounterTableData]
+    encounters: dict[EncounterType, EncounterTableData]
 
 
 class EventData(NamedTuple):
@@ -176,10 +176,10 @@ class RegionData:
     has_grass: bool
     has_water: bool
     has_fishing: bool
-    exits: List[str]
-    warps: List[str]
-    locations: List[str]
-    events: List[EventData]
+    exits: list[str]
+    warps: list[str]
+    locations: list[str]
+    events: list[EventData]
 
     def __init__(self, name: str, parent_map: MapData, has_grass: bool, has_water: bool, has_fishing: bool):
         self.name = name
@@ -240,13 +240,13 @@ class SpeciesData:
     species_id: int
     national_dex_number: int
     base_stats: BaseStats
-    types: Tuple[int, int]
-    abilities: Tuple[int, int]
-    evolutions: List[EvolutionData]
-    pre_evolution: Optional[int]
+    types: tuple[int, int]
+    abilities: tuple[int, int]
+    evolutions: list[EvolutionData]
+    pre_evolution: int | None
     catch_rate: int
     friendship: int
-    learnset: List[LearnsetMove]
+    learnset: list[LearnsetMove]
     tm_hm_compatibility: int
     learnset_address: int
     address: int
@@ -267,11 +267,11 @@ class TrainerPokemonDataTypeEnum(IntEnum):
 class TrainerPokemonData(NamedTuple):
     species_id: int
     level: int
-    moves: Optional[Tuple[int, int, int, int]]
+    moves: tuple[int, int, int, int] | None
 
 
 class TrainerPartyData(NamedTuple):
-    pokemon: List[TrainerPokemonData]
+    pokemon: list[TrainerPokemonData]
     pokemon_data_type: TrainerPokemonDataTypeEnum
     address: int
 
@@ -287,23 +287,23 @@ class TrainerData:
 
 class PokemonEmeraldData:
     rom_name: str
-    starters: Tuple[int, int, int]
-    constants: Dict[str, int]
-    ram_addresses: Dict[str, int]
-    rom_addresses: Dict[str, int]
-    regions: Dict[str, RegionData]
-    locations: Dict[str, LocationData]
-    items: Dict[int, ItemData]
-    species: Dict[int, SpeciesData]
-    legendary_encounters: List[MiscPokemonData]
-    misc_pokemon: List[MiscPokemonData]
-    tmhm_moves: List[int]
-    abilities: List[AbilityData]
-    move_labels: Dict[str, int]
-    maps: Dict[str, MapData]
-    warps: Dict[str, Warp]
-    warp_map: Dict[str, Optional[str]]
-    trainers: List[TrainerData]
+    starters: tuple[int, int, int]
+    constants: dict[str, int]
+    ram_addresses: dict[str, int]
+    rom_addresses: dict[str, int]
+    regions: dict[str, RegionData]
+    locations: dict[str, LocationData]
+    items: dict[int, ItemData]
+    species: dict[int, SpeciesData]
+    legendary_encounters: list[MiscPokemonData]
+    misc_pokemon: list[MiscPokemonData]
+    tmhm_moves: list[int]
+    abilities: list[AbilityData]
+    move_labels: dict[str, int]
+    maps: dict[str, MapData]
+    warps: dict[str, Warp]
+    warp_map: dict[str, str | None]
+    trainers: list[TrainerData]
 
     def __init__(self) -> None:
         self.starters = (277, 280, 283)
@@ -332,7 +332,7 @@ def load_json_data(data_name: str) -> dict[str, Any]:
 def _init() -> None:
     import re
 
-    extracted_data: Dict[str, Any] = load_json_data("extracted_data.json")
+    extracted_data: dict[str, Any] = load_json_data("extracted_data.json")
 
     data.rom_name = extracted_data["_rom_name"]
     data.constants = extracted_data["constants"]
@@ -347,7 +347,7 @@ def _init() -> None:
         if map_name in IGNORABLE_MAPS:
             continue
 
-        encounter_tables: Dict[EncounterType, EncounterTableData] = {}
+        encounter_tables: dict[EncounterType, EncounterTableData] = {}
         if "land_encounters" in map_json:
             encounter_tables[EncounterType.LAND] = EncounterTableData(
                 map_json["land_encounters"]["slots"],
@@ -417,8 +417,8 @@ def _init() -> None:
             regions_json[region_name] = region_json
 
     # Create region data
-    claimed_locations: Set[str] = set()
-    claimed_warps: Set[str] = set()
+    claimed_locations: set[str] = set()
+    claimed_warps: set[str] = set()
 
     data.regions = {}
     for region_name, region_json in regions_json.items():
@@ -521,7 +521,7 @@ def _init() -> None:
     # Create species data
 
     # Excludes extras like copies of Unown and special species values like SPECIES_EGG.
-    all_species: List[Tuple[str, str, int]] = [
+    all_species: list[tuple[str, str, int]] = [
         ("SPECIES_BULBASAUR", "Bulbasaur", 1),
         ("SPECIES_IVYSAUR", "Ivysaur", 2),
         ("SPECIES_VENUSAUR", "Venusaur", 3),
@@ -952,14 +952,14 @@ def _init() -> None:
             data.species[evolution.species_id].pre_evolution = species.species_id
 
     # Replace default item for dex entry locations based on evo stage of species
-    evo_stage_to_ball_map: Dict[int, int] = {
+    evo_stage_to_ball_map: dict[int, int] = {
         0: data.constants["ITEM_POKE_BALL"],
         1: data.constants["ITEM_GREAT_BALL"],
         2: data.constants["ITEM_ULTRA_BALL"],
     }
 
     for species in data.species.values():
-        default_item: Optional[int] = None
+        default_item: int | None = None
         pre_evolution = species.pre_evolution
 
         if pre_evolution is not None:

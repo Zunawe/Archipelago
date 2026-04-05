@@ -1,10 +1,8 @@
-from typing import Dict, Set
-
 from .data import LocationCategory, data
 
 
 # Item Groups
-ITEM_GROUPS: Dict[str, Set[str]] = {}
+ITEM_GROUPS: dict[str, set[str]] = {}
 
 for item in data.items.values():
     for tag in item.tags:
@@ -627,7 +625,7 @@ _LOCATION_CATEGORY_TO_GROUP_NAME = {
     LocationCategory.POKEDEX: "Pokedex",
 }
 
-LOCATION_GROUPS: Dict[str, Set[str]] = {group_name: set() for group_name in _LOCATION_CATEGORY_TO_GROUP_NAME.values()}
+LOCATION_GROUPS: dict[str, set[str]] = {group_name: set() for group_name in _LOCATION_CATEGORY_TO_GROUP_NAME.values()}
 for location in data.locations.values():
     # Category groups
     LOCATION_GROUPS[_LOCATION_CATEGORY_TO_GROUP_NAME[location.category]].add(location.label)

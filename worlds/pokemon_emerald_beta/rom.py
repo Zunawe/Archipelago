@@ -9,7 +9,7 @@ import json
 import logging
 import pkgutil
 import struct
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 import zipfile
 
 from BaseClasses import ItemClassification
@@ -60,7 +60,7 @@ _LOOPING_MUSIC = [
     "MUS_RG_ENCOUNTER_DEOXYS", "MUS_RG_TRAINER_TOWER", "MUS_RG_SLOW_PALLET", "MUS_RG_TEACHY_TV_MENU",
 ]
 
-_FANFARES: Dict[str, int] = {
+_FANFARES: dict[str, int] = {
     "MUS_LEVEL_UP":             80,
     "MUS_OBTAIN_ITEM":         160,
     "MUS_EVOLVED":             220,
@@ -156,7 +156,7 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
             struct.pack("<B", world.free_fly_location_id)
         )
 
-    location_info: List[Tuple[int, int, str]] = []
+    location_info: list[tuple[int, int, str]] = []
     for location in world.multiworld.get_locations(world.player):
         assert isinstance(location, PokemonEmeraldLocation)
 
@@ -219,8 +219,8 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
                 location.item.name
             ) for trainer in alternates)
 
-    player_name_ids: Dict[str, int] = {world.player_name: 0}
-    item_name_offsets: Dict[str, int] = {}
+    player_name_ids: dict[str, int] = {world.player_name: 0}
+    item_name_offsets: dict[str, int] = {}
     next_item_name_offset = 0
     for i, (flag, item_player, item_name) in enumerate(sorted(location_info, key=lambda t: t[0])):
         # The player's own items are still set in the table with the value 0 to indicate the game should not show any
@@ -739,7 +739,7 @@ def _set_encounter_tables(world: "PokemonEmeraldWorld", patch: PokemonEmeraldPro
                 patch.write_token(APTokenTypes.WRITE, address, struct.pack("<H", species_id))
 
 
-def _set_species_info(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: Tuple[int, int]) -> None:
+def _set_species_info(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: tuple[int, int]) -> None:
     for species in world.modified_species.values():
         patch.write_token(APTokenTypes.WRITE, species.address + 6, struct.pack("<B", species.types[0]))
         patch.write_token(APTokenTypes.WRITE, species.address + 7, struct.pack("<B", species.types[1]))
@@ -760,7 +760,7 @@ def _set_species_info(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedu
             patch.write_token(APTokenTypes.WRITE, species.learnset_address + (i * 2), struct.pack("<H", level_move))
 
 
-def _set_opponents(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: Tuple[int, int]) -> None:
+def _set_opponents(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: tuple[int, int]) -> None:
     for trainer in world.modified_trainers:
         party_address = trainer.party.address
 
@@ -817,7 +817,7 @@ def _set_starters(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePa
     patch.write_token(APTokenTypes.WRITE, data.rom_addresses["sStarterMon"] + 4, struct.pack("<H", world.modified_starters[2]))
 
 
-def _set_tm_moves(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: Tuple[int, int]) -> None:
+def _set_tm_moves(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: tuple[int, int]) -> None:
     tmhm_list_address = data.rom_addresses["sTMHMMoves"]
 
     for i, move in enumerate(world.modified_tmhm_moves):
@@ -869,7 +869,7 @@ def _randomize_opponent_battle_type(world: "PokemonEmeraldWorld", patch: Pokemon
                     )
 
 
-def _randomize_move_tutor_moves(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: Tuple[int, int]) -> None:
+def _randomize_move_tutor_moves(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePatch, easter_egg: tuple[int, int]) -> None:
     FORTREE_MOVE_TUTOR_INDEX = 24
 
     if easter_egg[0] == 2:

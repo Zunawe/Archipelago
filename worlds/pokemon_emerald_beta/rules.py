@@ -1,7 +1,7 @@
 """
 Logic rule definitions for Pokemon Emerald
 """
-from typing import TYPE_CHECKING, Callable, Dict
+from typing import TYPE_CHECKING, Callable
 
 from BaseClasses import CollectionState
 from worlds.generic.Rules import add_rule, set_rule
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 # Rules are organized by town/route/dungeon and ordered approximately
 # by when you would first reach that place in a vanilla playthrough.
 def set_rules(world: "PokemonEmeraldWorld") -> None:
-    hm_rules: Dict[str, Callable[[CollectionState], bool]] = {}
+    hm_rules: dict[str, Callable[[CollectionState], bool]] = {}
     for hm, badges in world.hm_requirements.items():
         if isinstance(badges, list):
             hm_rules[hm] = lambda state, hm=hm, badges=badges: \

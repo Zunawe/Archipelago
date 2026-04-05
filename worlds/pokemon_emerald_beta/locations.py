@@ -1,7 +1,7 @@
 """
 Classes and functions related to AP locations for Pokemon Emerald
 """
-from typing import TYPE_CHECKING, Dict, Optional, Set, Union, List
+from typing import TYPE_CHECKING
 
 from BaseClasses import Location, Region
 
@@ -55,26 +55,26 @@ VISITED_EVENTS = frozenset(BLACKLIST_OPTION_TO_VISITED_EVENT.values())
 
 class PokemonEmeraldLocation(Location):
     game: str = GAME_NAME
-    item_address: Optional[Union[int, List[int]]]
-    default_item_code: Optional[int]
-    key: Optional[str]
+    item_address: int | list[int] | None
+    default_item_code: int | None
+    key: str | None
 
     def __init__(
             self,
             player: int,
             name: str,
-            address: Optional[int],
-            parent: Optional[Region] = None,
-            key: Optional[str] = None,
-            item_address: Optional[int] = None,
-            default_item_value: Optional[int] = None) -> None:
+            address: int | None,
+            parent: Region | None = None,
+            key: str | None = None,
+            item_address: int | list[int] | None = None,
+            default_item_value: int | None = None) -> None:
         super().__init__(player, name, address, parent)
         self.default_item_code = None if default_item_value is None else default_item_value + BASE_OFFSET
         self.item_address = item_address
         self.key = key
 
 
-def create_locations_by_category(world: "PokemonEmeraldWorld", regions: Dict[str, Region], categories: Set[LocationCategory]) -> None:
+def create_locations_by_category(world: "PokemonEmeraldWorld", regions: dict[str, Region], categories: set[LocationCategory]) -> None:
     """
     Iterates through region data and adds locations to the multiworld if
     those locations include any of the provided tags.
@@ -108,11 +108,11 @@ def create_locations_by_category(world: "PokemonEmeraldWorld", regions: Dict[str
             region.locations.append(location)
 
 
-def create_location_label_to_id_map() -> Dict[str, int]:
+def create_location_label_to_id_map() -> dict[str, int]:
     """
     Creates a map from location labels to their AP location id (address)
     """
-    label_to_id_map: Dict[str, int] = {}
+    label_to_id_map: dict[str, int] = {}
     for region_data in data.regions.values():
         for location_name in region_data.locations:
             location_data = data.locations[location_name]

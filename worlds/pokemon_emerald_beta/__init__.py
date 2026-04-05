@@ -5,7 +5,7 @@ from collections import Counter
 import copy
 import logging
 import os
-from typing import Any, Set, List, Dict, Optional, Tuple, ClassVar, TextIO, Union
+from typing import Any, ClassVar, TextIO
 
 from BaseClasses import CollectionState, ItemClassification, MultiWorld, Tutorial, LocationProgressType
 from Fill import FillError, fill_restrictive
@@ -115,24 +115,24 @@ class PokemonEmeraldWorld(World):
 
     required_client_version = (0, 4, 6)
 
-    item_pool: List[PokemonEmeraldItem]
-    badge_shuffle_info: Optional[List[Tuple[PokemonEmeraldLocation, PokemonEmeraldItem]]]
-    hm_shuffle_info: Optional[List[Tuple[PokemonEmeraldLocation, PokemonEmeraldItem]]]
+    item_pool: list[PokemonEmeraldItem]
+    badge_shuffle_info: list[tuple[PokemonEmeraldLocation, PokemonEmeraldItem]] | None
+    hm_shuffle_info: list[tuple[PokemonEmeraldLocation, PokemonEmeraldItem]] | None
     free_fly_location_id: int
-    blacklisted_moves: Set[int]
-    blacklisted_wilds: Set[int]
-    blacklisted_starters: Set[int]
-    blacklisted_opponent_pokemon: Set[int]
+    blacklisted_moves: set[int]
+    blacklisted_wilds: set[int]
+    blacklisted_starters: set[int]
+    blacklisted_opponent_pokemon: set[int]
     allowed_dexsanity_species: set[int]
-    hm_requirements: Dict[str, Union[int, List[str]]]
+    hm_requirements: dict[str, int | list[str]]
     auth: bytes
 
-    modified_species: Dict[int, SpeciesData]
-    modified_maps: Dict[str, MapData]
-    modified_tmhm_moves: List[int]
-    modified_legendary_encounters: List[int]
-    modified_starters: Tuple[int, int, int]
-    modified_trainers: List[TrainerData]
+    modified_species: dict[int, SpeciesData]
+    modified_maps: dict[str, MapData]
+    modified_tmhm_moves: list[int]
+    modified_legendary_encounters: list[int]
+    modified_starters: tuple[int, int, int]
+    modified_trainers: list[TrainerData]
 
     def __init__(self, multiworld, player):
         super(PokemonEmeraldWorld, self).__init__(multiworld, player)
@@ -302,7 +302,7 @@ class PokemonEmeraldWorld(World):
         self.multiworld.regions.extend(all_regions.values())
 
         # Exclude locations which are always locked behind the player's goal
-        def exclude_locations(location_names: List[str]):
+        def exclude_locations(location_names: list[str]):
             for location_name in location_names:
                 try:
                     self.multiworld.get_location(location_name,
@@ -367,7 +367,7 @@ class PokemonEmeraldWorld(World):
             ])
 
     def create_items(self) -> None:
-        item_locations: List[PokemonEmeraldLocation] = [
+        item_locations: list[PokemonEmeraldLocation] = [
             location
             for location in self.multiworld.get_locations(self.player)
             if location.address is not None
@@ -376,7 +376,7 @@ class PokemonEmeraldWorld(World):
         # Filter progression items which shouldn't be shuffled into the itempool.
         # Their locations will still exist, but event items will be placed and
         # locked at their vanilla locations instead.
-        filter_categories = set()
+        filter_categories: set[LocationCategory] = set()
 
         if not self.options.key_items:
             filter_categories.add(LocationCategory.KEY)
@@ -420,7 +420,7 @@ class PokemonEmeraldWorld(World):
                                "Money", "TM", "Held", "Misc", "Berry"]
 
             # Count occurrences of types of vanilla items in pool
-            item_category_counter = Counter()
+            item_category_counter: Counter[str] = Counter()
             for item in default_itempool:
                 if not item.advancement:
                     item_category_counter.update([tag for tag in item.tags if tag in item_categories])
@@ -434,7 +434,7 @@ class PokemonEmeraldWorld(World):
 
             fill_item_candidates = [item for item in fill_item_candidates if "Unique" not in item.tags]
 
-            fill_item_candidates_by_category = {category: [] for category in item_categories}
+            fill_item_candidates_by_category: dict[str, list[int]] = {category: [] for category in item_categories}
             for item_data in fill_item_candidates:
                 for category in item_categories:
                     if category in item_data.tags:
@@ -514,8 +514,8 @@ class PokemonEmeraldWorld(World):
         my_locations = list(self.get_locations())
 
         if self.options.badges == RandomizeBadges.option_shuffle:
-            badge_locations: List[PokemonEmeraldLocation]
-            badge_items: List[PokemonEmeraldItem]
+            badge_locations: list[PokemonEmeraldLocation]
+            badge_items: list[PokemonEmeraldItem]
 
             # Sort order makes `fill_restrictive` try to place important badges later, which
             # makes it less likely to have to swap at all, and more likely for swaps to work.
@@ -552,8 +552,8 @@ class PokemonEmeraldWorld(World):
             self.fill_subset_with_retries(badge_items, badge_locations, state)
 
         if self.options.hms == RandomizeHms.option_shuffle:
-            hm_locations: List[PokemonEmeraldLocation]
-            hm_items: List[PokemonEmeraldItem]
+            hm_locations: list[PokemonEmeraldLocation]
+            hm_items: list[PokemonEmeraldItem]
 
             # Sort order makes `fill_restrictive` try to place important HMs later, which
             # makes it less likely to have to swap at all, and more likely for swaps to work.
@@ -702,11 +702,11 @@ class PokemonEmeraldWorld(World):
                 for species, maps in species_maps.items()
             }
 
-    def modify_multidata(self, multidata: Dict[str, Any]):
+    def modify_multidata(self, multidata):
         import base64
         multidata["connect_names"][base64.b64encode(self.auth).decode("ascii")] = multidata["connect_names"][self.player_name]
 
-    def fill_slot_data(self) -> Dict[str, Any]:
+    def fill_slot_data(self) -> dict[str, Any]:
         slot_data = self.options.as_dict(
             "goal",
             "badges",

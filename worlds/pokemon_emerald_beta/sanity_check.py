@@ -3,7 +3,6 @@ Looks through data object to double-check it makes sense. Will fail for missing 
 duplicate claims and give warnings for unused and unignored locations or warps.
 """
 import logging
-from typing import List
 
 
 _IGNORABLE_LOCATIONS = frozenset({
@@ -269,8 +268,8 @@ def validate_regions() -> bool:
     from .data import load_json_data, data
 
     extracted_data_json = load_json_data("extracted_data.json")
-    error_messages: List[str] = []
-    warn_messages: List[str] = []
+    error_messages: list[str] = []
+    warn_messages: list[str] = []
     failed = False
 
     def error(message: str) -> None:
@@ -299,7 +298,7 @@ def validate_regions() -> bool:
 
     # Check locations
     claimed_locations = [location for region in data.regions.values() for location in region.locations]
-    claimed_locations_set = set()
+    claimed_locations_set: set[str] = set()
     for location_name in claimed_locations:
         if location_name in claimed_locations_set:
             error(f"Pokemon Emerald: Location [{location_name}] was claimed by multiple regions")

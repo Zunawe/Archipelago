@@ -1,7 +1,7 @@
 """
 Functions related to AP regions for Pokemon Emerald (see ./data/regions for region definitions)
 """
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable
 
 from BaseClasses import CollectionState, ItemClassification, Region
 
@@ -13,14 +13,14 @@ if TYPE_CHECKING:
     from . import PokemonEmeraldWorld
 
 
-def create_regions(world: "PokemonEmeraldWorld") -> Dict[str, Region]:
+def create_regions(world: "PokemonEmeraldWorld") -> dict[str, Region]:
     """
     Iterates through regions created from JSON to create regions and adds them to the multiworld.
     Also creates and places events and connects regions via warps and the exits defined in the JSON.
     """
     # Used in connect_to_map_encounters. Splits encounter categories into "subcategories" and gives them names
     # and rules so the rods can only access their specific slots. Rock smash encounters are not considered in logic.
-    encounter_categories: Dict[EncounterType, List[Tuple[Optional[str], range, Optional[Callable[[CollectionState], bool]]]]] = {
+    encounter_categories: dict[EncounterType, list[tuple[str | None, range, Callable[[CollectionState], bool] | None]]] = {
         EncounterType.LAND: [(None, range(0, 12), None)],
         EncounterType.WATER: [(None, range(0, 5), None)],
         EncounterType.FISHING: [
@@ -30,7 +30,7 @@ def create_regions(world: "PokemonEmeraldWorld") -> Dict[str, Region]:
         ],
     }
 
-    def connect_to_map_encounters(region: Region, map_name: str, include_slots: Tuple[bool, bool, bool]):
+    def connect_to_map_encounters(region: Region, map_name: str, include_slots: tuple[bool, bool, bool]):
         """
         Connects the provided region to the corresponding wild encounters for the given parent map.
 
@@ -56,7 +56,7 @@ def create_regions(world: "PokemonEmeraldWorld") -> Dict[str, Region]:
                     for subcategory in subcategories:
                         # Want to create locations per species, not per slot
                         # encounter_categories includes info on which slots belong to which subcategory
-                        unique_species = []
+                        unique_species: list[int] = []
                         for j, species_id in enumerate(encounter_slots):
                             if j in subcategory[1] and not species_id in unique_species:
                                 unique_species.append(species_id)
@@ -90,8 +90,8 @@ def create_regions(world: "PokemonEmeraldWorld") -> Dict[str, Region]:
                 # Encounter region exists, just connect to it
                 region.connect(encounter_region, f"{region.name} -> {region_name}")
 
-    regions: Dict[str, Region] = {}
-    connections: List[Tuple[str, str, str]] = []
+    regions: dict[str, Region] = {}
+    connections: list[tuple[str, str, str]] = []
     for region_name, region_data in data.regions.items():
         new_region = Region(region_name, world.player, world.multiworld)
 
