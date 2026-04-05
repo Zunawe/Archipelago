@@ -6,10 +6,10 @@ and sorting, and Warp methods.
 """
 from dataclasses import dataclass
 from enum import IntEnum, Enum
+from importlib.resources import files
 import orjson
 from typing import Dict, List, NamedTuple, Optional, Set, FrozenSet, Tuple, Any, Union
 import pkgutil
-import pkg_resources
 
 from BaseClasses import ItemClassification
 
@@ -325,7 +325,7 @@ class PokemonEmeraldData:
         self.trainers = []
 
 
-def load_json_data(data_name: str) -> Union[List[Any], Dict[str, Any]]:
+def load_json_data(data_name: str) -> dict[str, Any]:
     return orjson.loads(pkgutil.get_data(__name__, "data/" + data_name).decode("utf-8-sig"))
 
 
@@ -370,7 +370,7 @@ def _init() -> None:
             )
 
         # Derive a user-facing label
-        label = []
+        label: list[str] = []
         for word in map_name[4:].split("_"):
             # 1F, B1F, 2R, etc.
             re_match = re.match(r"^B?\d+[FRP]$", word)
@@ -403,10 +403,11 @@ def _init() -> None:
         )
 
     # Load/merge region json files
-    region_json_list = []
-    for file in pkg_resources.resource_listdir(__name__, "data/regions"):
-        if not pkg_resources.resource_isdir(__name__, "data/regions/" + file):
-            region_json_list.append(load_json_data("regions/" + file))
+    apworld_root_name = '.'.join(__name__.split('.')[:-1])
+    region_json_list: list[dict[str, Any]] = []
+    for file in files(apworld_root_name).joinpath("data/regions").iterdir():
+        if file.is_file():
+            region_json_list.append(load_json_data("regions/" + file.name))
 
     regions_json = {}
     for region_subset in region_json_list:
