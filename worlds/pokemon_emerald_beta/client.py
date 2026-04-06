@@ -124,7 +124,7 @@ SHOAL_CAVE_MAPS = tuple(data.constants[map_name] for map_name in [
 class PokemonEmeraldClient(BizHawkClient):
     game = GAME_NAME
     system = "GBA"
-    patch_suffix = ".apemerald"
+    patch_suffix = ".apemeraldbeta"
 
     local_checked_locations: set[int]
     local_set_events: dict[str, bool]

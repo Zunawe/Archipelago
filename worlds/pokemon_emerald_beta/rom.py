@@ -118,7 +118,7 @@ class PokemonEmeraldPatchExtension(APPatchExtension):
 class PokemonEmeraldProcedurePatch(APProcedurePatch, APTokenMixin):
     game = GAME_NAME
     hash = "605b89b67018abcea91e693a4dd25be3"
-    patch_file_ending = ".apemerald"
+    patch_file_ending = ".apemeraldbeta"
     result_file_ending = ".gba"
 
     base_patch_checksum: str
