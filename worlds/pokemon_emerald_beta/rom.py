@@ -559,20 +559,19 @@ def write_tokens(world: "PokemonEmeraldWorld", patch: PokemonEmeraldProcedurePat
         "Rain Badge": 1 << 7,
     }
 
-    # Number of badges
-    # Uses 4 bits per HM. 0-8 means it's a valid requirement, otherwise use specific badges.
     hm_badge_counts = 0
     for i, hm in enumerate(field_move_order):
+        # Number of badges
+        # Uses 4 bits per HM. 0-8 means it's a valid requirement, otherwise use specific badges.
         hm_badge_counts |= (world.hm_requirements[hm] if isinstance(world.hm_requirements[hm], int) else 0xF) << (i * 4)
-    patch.write_token(APTokenTypes.WRITE, options_address + 0x14, struct.pack("<I", hm_badge_counts))
 
-    # Specific badges
-    for i, hm in enumerate(field_move_order):
-        if isinstance(world.hm_requirements, list):
+        # Specific badges
+        if isinstance(world.hm_requirements[hm], list):
             bitfield = 0
-            for badge in world.hm_requirements:
+            for badge in world.hm_requirements[hm]:
                 bitfield |= badge_to_bit[badge]
-            patch.write_token(APTokenTypes.WRITE, options_address + 0x18, struct.pack("<B", bitfield))
+            patch.write_token(APTokenTypes.WRITE, options_address + 0x18 + i, struct.pack("<B", bitfield))
+    patch.write_token(APTokenTypes.WRITE, options_address + 0x14, struct.pack("<I", hm_badge_counts))
 
     # Set terra/marine cave locations
     # Subtract 1 from ids so all possible ids fit into 4 bits

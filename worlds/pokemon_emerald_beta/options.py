@@ -2,9 +2,12 @@
 Option definitions for Pokemon Emerald
 """
 from dataclasses import dataclass
+from typing import Any
 
+from BaseClasses import PlandoOptions
 from Options import (Choice, DeathLink, DefaultOnToggle, OptionSet, NamedRange, Range, Toggle, FreeText,
-                     PerGameCommonOptions, OptionGroup, StartInventory, OptionList)
+                     PerGameCommonOptions, OptionGroup, StartInventory, OptionList, OptionDict, OptionError)
+from worlds.AutoWorld import World
 
 from .data import data
 
@@ -780,6 +783,59 @@ class HmRequirements(Choice):
     option_fly_without_badge = 1
 
 
+class CustomHmRequirements(OptionDict):
+    """
+    Experimental option
+    """
+    display_name = "Custom HM Requirements"
+    valid_keys = [
+        "HM01 Cut",
+        "HM02 Fly",
+        "HM03 Surf",
+        "HM04 Strength",
+        "HM05 Flash",
+        "HM06 Rock Smash",
+        "HM07 Waterfall",
+        "HM08 Dive",
+    ]
+    valid_badge_names = [
+        "Stone Badge",
+        "Knuckle Badge",
+        "Dynamo Badge",
+        "Heat Badge",
+        "Balance Badge",
+        "Feather Badge",
+        "Mind Badge",
+        "Rain Badge",
+    ]
+
+    def verify(self, world: type[World], player_name: str, plando_options: PlandoOptions) -> None:
+        super().verify(world, player_name, plando_options)
+
+        for hm, requirement in self.value.items():
+            if isinstance(requirement, str):
+                self.value[hm] = [requirement]
+
+        errors: list[str] = []
+        trigger_badge_name_message = False
+        for hm, requirement in self.value.items():
+            if isinstance(requirement, int):
+                if requirement < 0 or requirement > 8:
+                    errors.append(f"{hm}: {requirement} is outside the allowed numeric range of 0-8.")
+            elif isinstance(requirement, list):
+                invalid_badges: list[Any] = [badge for badge in requirement if badge not in CustomHmRequirements.valid_badge_names]
+                if len(invalid_badges) > 0:
+                    errors.append(f"{hm}: Included invalid badge names {invalid_badges}.")
+                    trigger_badge_name_message = True
+            else:
+                errors.append(f"Value {requirement} for {hm} is invalid. Must be an integer, badge name, or list of badge names.")
+
+        if len(errors) > 0:
+            raise OptionError(f"Custom HM Requirements had {len(errors)} problems:\n" +
+                              "\n".join(errors) + "\n" +
+                              f"Valid badge names are {CustomHmRequirements.valid_badge_names}" if trigger_badge_name_message else "")
+
+
 class TurboA(Toggle):
     """
     Holding A will advance most text automatically.
@@ -935,6 +991,7 @@ class PokemonEmeraldOptions(PerGameCommonOptions):
     free_fly_location: FreeFlyLocation
     free_fly_blacklist: FreeFlyBlacklist
     hm_requirements: HmRequirements
+    custom_hm_requirements: CustomHmRequirements
 
     turbo_a: TurboA
     receive_item_messages: ReceiveItemMessages

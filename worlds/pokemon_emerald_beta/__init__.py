@@ -172,8 +172,10 @@ class PokemonEmeraldWorld(World):
             "HM07 Waterfall": ["Rain Badge"],
             "HM08 Dive": ["Mind Badge"],
         }
-        if self.options.hm_requirements == HmRequirements.option_fly_without_badge:
-            self.hm_requirements["HM02 Fly"] = 0
+        self.hm_requirements.update(self.options.custom_hm_requirements.value)
+        # TODO: Decide on a final api to account for fly without badge
+        # if self.options.hm_requirements == HmRequirements.option_fly_without_badge:
+        #     self.hm_requirements["HM02 Fly"] = 0
 
         self.blacklisted_moves = {emerald_data.move_labels[label] for label in self.options.move_blacklist.value}
 
