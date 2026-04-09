@@ -15,7 +15,7 @@ from worlds.AutoWorld import WebWorld, World
 
 from .client import PokemonEmeraldClient  # Unused, but required to register with BizHawkClient
 from .data import (GAME_NAME, BASE_OFFSET, LEGENDARY_POKEMON, MapData, SpeciesData, TrainerData, LocationCategory,
-                   data as emerald_data)
+                   MiscPokemonData, data as emerald_data)
 from .groups import ITEM_GROUPS, LOCATION_GROUPS
 from .items import PokemonEmeraldItem, create_item_label_to_code_map, get_item_classification
 from .locations import (PokemonEmeraldLocation, create_location_label_to_id_map, create_locations_by_category,
@@ -130,7 +130,7 @@ class PokemonEmeraldWorld(World):
     modified_species: dict[int, SpeciesData]
     modified_maps: dict[str, MapData]
     modified_tmhm_moves: list[int]
-    modified_legendary_encounters: list[int]
+    modified_legendary_encounters: list[MiscPokemonData]
     modified_starters: tuple[int, int, int]
     modified_trainers: list[TrainerData]
 
