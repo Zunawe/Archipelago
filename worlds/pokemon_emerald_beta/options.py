@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from BaseClasses import PlandoOptions
-from Options import (Choice, DeathLink, DefaultOnToggle, OptionSet, NamedRange, Range, Toggle, FreeText,
+from Options import (Choice, DeathLink, DefaultOnToggle, OptionSet, NamedRange, Range, Toggle, FreeText, Visibility,
                      PerGameCommonOptions, OptionGroup, StartInventory, OptionList, OptionDict, OptionError)
 from worlds.AutoWorld import World
 
@@ -776,6 +776,9 @@ class FreeFlyBlacklist(OptionSet):
 class HmRequirements(OptionSet):
     """
     Sets the requirements to use HMs outside of battle.
+
+    - Fly Without Badge: You can use HM02 Fly even if you have no badges
+    - Surf Requires Extra Badge: HM03 Surf requires both the Balance Badge and the Feather Badge
     """
     display_name = "HM Requirements"
     valid_keys = [
@@ -787,8 +790,30 @@ class HmRequirements(OptionSet):
 
 class CustomHmRequirements(OptionDict):
     """
-    Experimental option
+    Allows you to set your own HM requirements. You must create a dictionary with HM item names as keys and either
+    numbers, a badge name, or a list of badge names as values.
+
+    If you provide a number, you'll be required to have that number of badges to use the HM, but they can be any badge.
+
+    If you provide a badge name or list of badge names, you'll be required to have all of the specified badges to use the HM.
+
+    Vanilla HM requirements are applied first, then the modifications from the hm_requirements option, and then the
+    modifications from this option. If you don't specify an HM here, it's left unmodified.
+
+    If you do anything other than set requirements to 0, you must not set your badges to be shuffled or vanilla.
+
+    Example:
+    {
+      "HM01 Cut": 3,
+      "HM05 Flash": ["Balance Badge", "Rain Badge"],
+      "HM07 Surf": "Knuckle Badge"
+    }
+
+    This sets Cut to require at least 3 total badges. Flash requires specifically the Balance and Rain badges. And
+    Surf requires the Knuckle Badge. This overrides the "Surf Requires Extra Badge" option in hm_requirements. Strength
+    still requires the Heat Badge, since it wasn't specified here.
     """
+    visibility = Visibility.template
     display_name = "Custom HM Requirements"
     valid_keys = [
         "HM01 Cut",
