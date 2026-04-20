@@ -1,6 +1,8 @@
 """
 Functions related to AP regions for Pokemon Emerald (see ./data/regions for region definitions)
 """
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Callable
 
 from BaseClasses import CollectionState, ItemClassification, Region
@@ -10,10 +12,10 @@ from .items import PokemonEmeraldItem
 from .locations import PokemonEmeraldLocation
 
 if TYPE_CHECKING:
-    from . import PokemonEmeraldWorld
+    from .world import PokemonEmeraldWorld
 
 
-def create_regions(world: "PokemonEmeraldWorld") -> dict[str, Region]:
+def create_regions(world: PokemonEmeraldWorld) -> dict[str, Region]:
     """
     Iterates through regions created from JSON to create regions and adds them to the multiworld.
     Also creates and places events and connects regions via warps and the exits defined in the JSON.

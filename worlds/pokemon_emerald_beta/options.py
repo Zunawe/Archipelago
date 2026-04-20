@@ -773,14 +773,16 @@ class FreeFlyBlacklist(OptionSet):
     ]
 
 
-class HmRequirements(Choice):
+class HmRequirements(OptionSet):
     """
     Sets the requirements to use HMs outside of battle.
     """
     display_name = "HM Requirements"
-    default = 0
-    option_vanilla = 0
-    option_fly_without_badge = 1
+    valid_keys = [
+        "Fly Without Badge",
+        "Surf Requires Extra Badge",
+    ]
+    default = []
 
 
 class CustomHmRequirements(OptionDict):
@@ -815,6 +817,9 @@ class CustomHmRequirements(OptionDict):
         for hm, requirement in self.value.items():
             if isinstance(requirement, str):
                 self.value[hm] = [requirement]
+            elif isinstance(requirement, list):
+                if len(requirement) == 0:
+                    self.value[hm] = 0
 
         errors: list[str] = []
         trigger_badge_name_message = False

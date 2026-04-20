@@ -1,6 +1,8 @@
 """
 Classes and functions related to AP locations for Pokemon Emerald
 """
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from BaseClasses import Location, Region
@@ -8,7 +10,7 @@ from BaseClasses import Location, Region
 from .data import BASE_OFFSET, GAME_NAME, NATIONAL_ID_TO_SPECIES_ID, POKEDEX_OFFSET, LocationCategory, data
 
 if TYPE_CHECKING:
-    from . import PokemonEmeraldWorld
+    from .world import PokemonEmeraldWorld
 
 
 VISITED_EVENT_NAME_TO_ID = {
@@ -74,7 +76,7 @@ class PokemonEmeraldLocation(Location):
         self.key = key
 
 
-def create_locations_by_category(world: "PokemonEmeraldWorld", regions: dict[str, Region], categories: set[LocationCategory]) -> None:
+def create_locations_by_category(world: PokemonEmeraldWorld, regions: dict[str, Region], categories: set[LocationCategory]) -> None:
     """
     Iterates through region data and adds locations to the multiworld if
     those locations include any of the provided tags.
@@ -142,7 +144,7 @@ def set_free_fly(world: "PokemonEmeraldWorld") -> None:
     free_fly_location_location.place_locked_item(world.create_event(fly_location_name))
 
 
-def set_legendary_cave_entrances(world: "PokemonEmeraldWorld") -> None:
+def set_legendary_cave_entrances(world: PokemonEmeraldWorld) -> None:
     # Set Marine Cave and Terra Cave entrances
     terra_cave_location_name = world.random.choice([
         "TERRA_CAVE_ROUTE_114_1",

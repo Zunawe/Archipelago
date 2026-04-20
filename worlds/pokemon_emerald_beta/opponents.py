@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from .data import NUM_REAL_SPECIES, UNEVOLVED_POKEMON, data
@@ -6,10 +8,10 @@ from .pokemon import filter_species_by_nearby_bst
 from .util import int_to_bool_array
 
 if TYPE_CHECKING:
-    from . import PokemonEmeraldWorld
+    from .world import PokemonEmeraldWorld
 
 
-def randomize_opponent_parties(world: "PokemonEmeraldWorld") -> None:
+def randomize_opponent_parties(world: PokemonEmeraldWorld) -> None:
     if world.options.trainer_parties == RandomizeTrainerParties.option_vanilla:
         return
 

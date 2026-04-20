@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import copy
 import orjson
@@ -161,7 +163,7 @@ class PokemonEmeraldClient(BizHawkClient):
         self.queued_received_trade = None
         self.last_encounter_data = None
 
-    async def validate_rom(self, ctx: "BizHawkClientContext") -> bool:
+    async def validate_rom(self, ctx: BizHawkClientContext) -> bool:
         from CommonClient import logger
 
         try:

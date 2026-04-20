@@ -1,6 +1,8 @@
 """
 Functions related to pokemon species and moves
 """
+from __future__ import annotations
+
 import functools
 from typing import TYPE_CHECKING
 
@@ -13,7 +15,7 @@ from .util import bool_array_to_int, get_easter_egg, int_to_bool_array
 
 if TYPE_CHECKING:
     from random import Random
-    from . import PokemonEmeraldWorld
+    from .world import PokemonEmeraldWorld
 
 
 _DAMAGING_MOVES = frozenset({
@@ -93,7 +95,7 @@ def get_species_id_by_label(label: str) -> int:
     return next(species.species_id for species in data.species.values() if species.label == label)
 
 
-def get_random_type(random: "Random") -> int:
+def get_random_type(random: Random) -> int:
     picked_type = random.randrange(0, 18)
     while picked_type == 9:  # Don't pick the ??? type
         picked_type = random.randrange(0, 18)
@@ -102,7 +104,7 @@ def get_random_type(random: "Random") -> int:
 
 
 def get_random_move(
-        random: "Random",
+        random: Random,
         blacklist: set[int] | None = None,
         type_bias: int = 0,
         normal_bias: int = 0,
@@ -146,7 +148,7 @@ def get_random_move(
     return random.choice(possible_moves)
 
 
-def get_random_damaging_move(random: "Random", blacklist: set[int] | None = None) -> int:
+def get_random_damaging_move(random: Random, blacklist: set[int] | None = None) -> int:
     expanded_blacklist = _MOVE_BLACKLIST | (blacklist if blacklist is not None else set())
     move_options = list(_DAMAGING_MOVES)
 
@@ -171,7 +173,7 @@ def filter_species_by_nearby_bst(species: list[SpeciesData], target_bst: int) ->
     return species[:cutoff_index + 1]
 
 
-def randomize_types(world: "PokemonEmeraldWorld") -> None:
+def randomize_types(world: PokemonEmeraldWorld) -> None:
     if world.options.types == RandomizeTypes.option_shuffle:
         type_map = list(range(18))
         world.random.shuffle(type_map)
@@ -234,7 +236,7 @@ _encounter_subcategory_ranges: dict[EncounterType, dict[range, str | None]] = {
 }
 
 
-def _rename_wild_events(world: "PokemonEmeraldWorld", map_data: MapData, new_slots: list[int], encounter_type: EncounterType):
+def _rename_wild_events(world: PokemonEmeraldWorld, map_data: MapData, new_slots: list[int], encounter_type: EncounterType):
     """
     Renames the events that correspond to wild encounters to reflect the new species there after randomization
     """
@@ -263,7 +265,7 @@ def _rename_wild_events(world: "PokemonEmeraldWorld", map_data: MapData, new_slo
             pass  # Map probably isn't included; should be careful here about bad encounter location names
 
 
-def randomize_wild_encounters(world: "PokemonEmeraldWorld") -> None:
+def randomize_wild_encounters(world: PokemonEmeraldWorld) -> None:
     encounter_table = {
         "Land": EncounterType.LAND,
         "Water": EncounterType.WATER,
@@ -390,7 +392,7 @@ def randomize_wild_encounters(world: "PokemonEmeraldWorld") -> None:
         map_data.encounters = new_encounters
 
 
-def randomize_abilities(world: "PokemonEmeraldWorld") -> None:
+def randomize_abilities(world: PokemonEmeraldWorld) -> None:
     if world.options.abilities == RandomizeAbilities.option_vanilla:
         return
 
@@ -462,7 +464,7 @@ def randomize_abilities(world: "PokemonEmeraldWorld") -> None:
             species.abilities = new_abilities
 
 
-def randomize_learnsets(world: "PokemonEmeraldWorld") -> None:
+def randomize_learnsets(world: PokemonEmeraldWorld) -> None:
     if world.options.level_up_moves == LevelUpMoves.option_vanilla:
         return
 
@@ -502,7 +504,7 @@ def randomize_learnsets(world: "PokemonEmeraldWorld") -> None:
         species.learnset = new_learnset
 
         
-def randomize_starters(world: "PokemonEmeraldWorld") -> None:
+def randomize_starters(world: PokemonEmeraldWorld) -> None:
     if world.options.starters == RandomizeStarters.option_vanilla:
         return
 
@@ -610,7 +612,7 @@ def randomize_starters(world: "PokemonEmeraldWorld") -> None:
                 trainer_data.party.pokemon[starter_position]._replace(species_id=new_species_id)
 
 
-def randomize_legendary_encounters(world: "PokemonEmeraldWorld") -> None:
+def randomize_legendary_encounters(world: PokemonEmeraldWorld) -> None:
     if world.options.legendary_encounters == RandomizeLegendaryEncounters.option_vanilla:
         return
     elif world.options.legendary_encounters == RandomizeLegendaryEncounters.option_shuffle:
@@ -648,7 +650,7 @@ def randomize_legendary_encounters(world: "PokemonEmeraldWorld") -> None:
             ))
 
 
-def randomize_misc_pokemon(world: "PokemonEmeraldWorld") -> None:
+def randomize_misc_pokemon(world: PokemonEmeraldWorld) -> None:
     if world.options.misc_pokemon == RandomizeMiscPokemon.option_vanilla:
         return
     elif world.options.misc_pokemon == RandomizeMiscPokemon.option_shuffle:
@@ -695,7 +697,7 @@ def randomize_misc_pokemon(world: "PokemonEmeraldWorld") -> None:
             ))
 
 
-def randomize_tm_hm_compatibility(world: "PokemonEmeraldWorld") -> None:
+def randomize_tm_hm_compatibility(world: PokemonEmeraldWorld) -> None:
     for species in world.modified_species.values():
         # TM and HM compatibility is stored as a 64-bit bitfield
         combatibility_array = int_to_bool_array(species.tm_hm_compatibility)
