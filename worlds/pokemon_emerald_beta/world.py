@@ -14,7 +14,7 @@ import settings
 from worlds.AutoWorld import WebWorld, World
 
 from .data import (GAME_NAME, BASE_OFFSET, LEGENDARY_POKEMON, PokemonSource, MapData, SpeciesData, TrainerData,
-                   LocationCategory, MiscPokemonData, data as emerald_data)
+                   LocationCategory, MiscPokemonData, data)
 from .groups import ITEM_GROUPS, LOCATION_GROUPS
 from .items import (PokemonEmeraldItem, PokemonEmeraldObtainPokemonEventItem, create_item_label_to_code_map,
                     get_item_classification)
@@ -146,10 +146,10 @@ class PokemonEmeraldWorld(World):
         self.blacklisted_opponent_pokemon = set()
         self.allowed_dexsanity_species = set()
         self.enabled_dexsanity_encounter_types = set()
-        self.modified_maps = copy.deepcopy(emerald_data.maps)
-        self.modified_species = copy.deepcopy(emerald_data.species)
+        self.modified_maps = copy.deepcopy(data.maps)
+        self.modified_species = copy.deepcopy(data.species)
         self.modified_tmhm_moves = []
-        self.modified_starters = emerald_data.starters
+        self.modified_starters = data.starters
         self.modified_trainers = []
         self.modified_legendary_encounters = []
 
@@ -195,7 +195,7 @@ class PokemonEmeraldWorld(World):
                                    "HM requirements while using vanilla or shuffled badge placement except to set the "
                                    "requirement to 0.")
 
-        self.blacklisted_moves = {emerald_data.move_labels[label] for label in self.options.move_blacklist.value}
+        self.blacklisted_moves = {data.move_labels[label] for label in self.options.move_blacklist.value}
 
         self.blacklisted_wilds = {
             get_species_id_by_label(species_name)
@@ -298,8 +298,8 @@ class PokemonEmeraldWorld(World):
         # blacklist Latios to remove its dexsanity location
         if self.options.goal == Goal.option_legendary_hunt and self.options.dexsanity \
                 and "Latios" in self.options.allowed_legendary_hunt_encounters.value \
-                and emerald_data.constants["SPECIES_LATIOS"] not in self.blacklisted_wilds:
-            self.allowed_dexsanity_species.add(emerald_data.constants["SPECIES_LATIOS"])
+                and data.constants["SPECIES_LATIOS"] not in self.blacklisted_wilds:
+            self.allowed_dexsanity_species.add(data.constants["SPECIES_LATIOS"])
 
     def create_regions(self) -> None:
         from .regions import create_regions
@@ -428,17 +428,17 @@ class PokemonEmeraldWorld(World):
         if self.options.badges == RandomizeBadges.option_shuffle:
             self.badge_shuffle_info = [
                 (location, self.create_item_by_code(location.default_item_code))
-                for location in [l for l in item_locations if emerald_data.locations[l.key].category == LocationCategory.BADGE]
+                for location in [l for l in item_locations if data.locations[l.key].category == LocationCategory.BADGE]
             ]
         if self.options.hms == RandomizeHms.option_shuffle:
             self.hm_shuffle_info = [
                 (location, self.create_item_by_code(location.default_item_code))
-                for location in [l for l in item_locations if emerald_data.locations[l.key].category == LocationCategory.HM]
+                for location in [l for l in item_locations if data.locations[l.key].category == LocationCategory.HM]
             ]
 
         # Filter down locations to actual items that will be filled and create
         # the itempool.
-        item_locations = [location for location in item_locations if emerald_data.locations[location.key].category not in filter_categories]
+        item_locations = [location for location in item_locations if data.locations[location.key].category not in filter_categories]
         default_itempool = [self.create_item_by_code(location.default_item_code) for location in item_locations]
 
         if self.options.item_pool_type == ItemPoolType.option_shuffled:
@@ -460,7 +460,7 @@ class PokemonEmeraldWorld(World):
             item_category_weights = [weight if weight is not None else 0 for weight in item_category_weights]
 
             # Create lists of item codes that can be used to fill
-            fill_item_candidates = emerald_data.items.values()
+            fill_item_candidates = data.items.values()
 
             fill_item_candidates = [item for item in fill_item_candidates if "Unique" not in item.tags]
 
@@ -512,7 +512,7 @@ class PokemonEmeraldWorld(World):
         def convert_unrandomized_items_to_events(category: LocationCategory) -> None:
             for location in self.multiworld.get_locations(self.player):
                 assert isinstance(location, PokemonEmeraldLocation)
-                if location.key is not None and emerald_data.locations[location.key].category == category:
+                if location.key is not None and data.locations[location.key].category == category:
                     location.place_locked_item(self.create_event(self.item_id_to_name[location.default_item_code]))
                     location.progress_type = LocationProgressType.DEFAULT
                     location.address = None
@@ -655,11 +655,11 @@ class PokemonEmeraldWorld(World):
         randomize_types(self)
 
     def generate_output(self, output_directory: str) -> None:
-        self.modified_trainers = copy.deepcopy(emerald_data.trainers)
-        self.modified_tmhm_moves = copy.deepcopy(emerald_data.tmhm_moves)
-        self.modified_legendary_encounters = copy.deepcopy(emerald_data.legendary_encounters)
-        self.modified_misc_pokemon = copy.deepcopy(emerald_data.misc_pokemon)
-        self.modified_starters = copy.deepcopy(emerald_data.starters)
+        self.modified_trainers = copy.deepcopy(data.trainers)
+        self.modified_tmhm_moves = copy.deepcopy(data.tmhm_moves)
+        self.modified_legendary_encounters = copy.deepcopy(data.legendary_encounters)
+        self.modified_misc_pokemon = copy.deepcopy(data.misc_pokemon)
+        self.modified_starters = copy.deepcopy(data.starters)
 
         # Modify catch rate
         min_catch_rate = min(self.options.min_catch_rate.value, 255)
@@ -709,7 +709,7 @@ class PokemonEmeraldWorld(World):
                     for i, encounter in enumerate(encounter_data.slots):
                         species_maps[encounter].add(f"{map_data.label} ({get_encounter_type_label(encounter_type, i)})")
 
-            lines = [f"{emerald_data.species[species].label}: {', '.join(sorted(maps))}\n"
+            lines = [f"{data.species[species].label}: {', '.join(sorted(maps))}\n"
                      for species, maps in species_maps.items()]
             lines.sort()
             for line in lines:
@@ -728,7 +728,7 @@ class PokemonEmeraldWorld(World):
                         species_maps[encounter].add(f"{map_data.label} ({get_encounter_type_label(encounter_type, i)})")
 
             hint_data[self.player] = {
-                self.location_name_to_id[f"Pokedex - {emerald_data.species[species].label}"]: ", ".join(sorted(maps))
+                self.location_name_to_id[f"Pokedex - {data.species[species].label}"]: ", ".join(sorted(maps))
                 for species, maps in species_maps.items()
             }
 
@@ -800,11 +800,11 @@ class PokemonEmeraldWorld(World):
             if isinstance(item, PokemonEmeraldObtainPokemonEventItem):
                 if item.source in self.enabled_dexsanity_encounter_types:
                     state.prog_items[self.player].update({
-                        f"DEXSANITY_{emerald_data.species[item.species].name}": 1,
+                        f"DEXSANITY_{data.species[item.species].name}": 1,
                     })
-                if item.species in (emerald_data.constants["SPECIES_WAILORD"], emerald_data.constants["SPECIES_RELICANTH"]):
+                if item.species in (data.constants["SPECIES_WAILORD"], data.constants["SPECIES_RELICANTH"]):
                     state.prog_items[self.player].update({
-                        f"REGI_WALL_{emerald_data.species[item.species].name}": 1,
+                        f"REGI_WALL_{data.species[item.species].name}": 1,
                     })
         return changed
 
@@ -814,10 +814,10 @@ class PokemonEmeraldWorld(World):
             if isinstance(item, PokemonEmeraldObtainPokemonEventItem):
                 if item.source in self.enabled_dexsanity_encounter_types:
                     state.prog_items[self.player].subtract({
-                        f"DEXSANITY_{emerald_data.species[item.species].name}": 1,
+                        f"DEXSANITY_{data.species[item.species].name}": 1,
                     })
-                if item.species in (emerald_data.constants["SPECIES_WAILORD"], emerald_data.constants["SPECIES_RELICANTH"]):
+                if item.species in (data.constants["SPECIES_WAILORD"], data.constants["SPECIES_RELICANTH"]):
                     state.prog_items[self.player].subtract({
-                        f"REGI_WALL_{emerald_data.species[item.species].name}": 1,
+                        f"REGI_WALL_{data.species[item.species].name}": 1,
                     })
         return changed
