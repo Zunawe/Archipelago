@@ -630,12 +630,8 @@ def set_rules(world: PokemonEmeraldWorld) -> None:
 
     # Pokedex Rewards
     if world.options.dexsanity:
-        for i in range(NUM_REAL_SPECIES):
-            species = data.species[NATIONAL_ID_TO_SPECIES_ID[i + 1]]
-
-            if species.species_id in world.blacklisted_wilds or species.species_id not in world.allowed_dexsanity_species:
-                continue
-
+        for species_id in world.allowed_dexsanity_species:
+            species = data.species[species_id]
             location_rules[f"Pokedex - {species.label}"] = Has(f"DEXSANITY_{species.name}")
 
         # Legendary hunt prevents Latios from being a wild spawn so the roamer

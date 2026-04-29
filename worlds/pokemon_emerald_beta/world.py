@@ -306,6 +306,8 @@ class PokemonEmeraldWorld(World):
         all_regions = create_regions(self)
 
         randomize_wild_encounters(self)
+        self.allowed_dexsanity_species -= self.blacklisted_wilds
+
         # Categories with progression items always included
         categories = {
             LocationCategory.BADGE,

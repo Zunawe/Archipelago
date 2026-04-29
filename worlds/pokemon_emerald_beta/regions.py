@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 
 from BaseClasses import CollectionState, ItemClassification, Region
+from rule_builder.rules import Rule, Has
 
 from .data import PokemonSource, data
 from .items import PokemonEmeraldItem, PokemonEmeraldObtainPokemonEventItem
@@ -22,13 +23,13 @@ def create_regions(world: PokemonEmeraldWorld) -> dict[str, Region]:
     """
     # Used in connect_to_map_encounters. Splits encounter categories into "subcategories" and gives them names
     # and rules so the rods can only access their specific slots. Rock smash encounters are not considered in logic.
-    encounter_categories: dict[PokemonSource, list[tuple[str | None, range, Callable[[CollectionState], bool] | None]]] = {
+    encounter_categories: dict[PokemonSource, list[tuple[str | None, range, Rule | None]]] = {
         PokemonSource.LAND: [(None, range(0, 12), None)],
         PokemonSource.WATER: [(None, range(0, 5), None)],
         PokemonSource.FISHING: [
-            ("OLD_ROD", range(0, 2), lambda state: state.has("Old Rod", world.player)),
-            ("GOOD_ROD", range(2, 5), lambda state: state.has("Good Rod", world.player)),
-            ("SUPER_ROD", range(5, 10), lambda state: state.has("Super Rod", world.player)),
+            ("OLD_ROD", range(0, 2), Has("Old Rod")),
+            ("GOOD_ROD", range(2, 5), Has("Good Rod")),
+            ("SUPER_ROD", range(5, 10), Has("Super Rod")),
         ],
     }
 
@@ -75,7 +76,7 @@ def create_regions(world: PokemonEmeraldWorld) -> dict[str, Region]:
 
                             # Add access rule
                             if subcategory[2] is not None:
-                                encounter_location.access_rule = subcategory[2]
+                                world.set_rule(encounter_location, subcategory[2])
 
                             # Fill the location with an event for catching that species
                             encounter_location.place_locked_item(PokemonEmeraldObtainPokemonEventItem(
