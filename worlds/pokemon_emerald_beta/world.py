@@ -228,7 +228,7 @@ class PokemonEmeraldWorld(World):
         }
         self.enabled_dexsanity_encounter_types = {
             encounter_table[encounter_type] 
-            for encounter_type in self.options.dexsanity_encounter_types.value
+            for encounter_type in self.options.dexsanity.value
         }
 
         # In race mode we don't patch any item location information into the ROM
@@ -768,7 +768,6 @@ class PokemonEmeraldWorld(World):
             "modify_118",
             "death_link",
             "normalize_encounter_rates",
-            "dexsanity_encounter_types",
         )
         slot_data["free_fly_location_id"] = self.free_fly_location_id
         slot_data["hm_requirements"] = self.hm_requirements
