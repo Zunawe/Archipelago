@@ -1440,7 +1440,10 @@ def set_rules(world: PokemonEmeraldWorld) -> None:
     )
     set_rule(
         get_location("EVENT_UNDO_REGI_SEAL"),
-        lambda state: state.has("CATCH_SPECIES_WAILORD", world.player) and state.has("CATCH_SPECIES_RELICANTH", world.player)
+        lambda state: state.has_all([
+            "REGI_WALL_SPECIES_WAILORD",
+            "REGI_WALL_SPECIES_RELICANTH"
+        ], world.player)
     )
     set_rule(
         get_entrance("REGION_SEALED_CHAMBER_OUTER_ROOM/MAIN -> REGION_SEALED_CHAMBER_OUTER_ROOM/CRUMBLED_WALL"),
@@ -1555,7 +1558,7 @@ def set_rules(world: PokemonEmeraldWorld) -> None:
 
             set_rule(
                 get_location(f"Pokedex - {species.label}"),
-                lambda state, species_name=species.name: state.has(f"CATCH_{species_name}", world.player)
+                lambda state, species_name=species.name: state.has(f"DEXSANITY_{species_name}", world.player)
             )
 
         # Legendary hunt prevents Latios from being a wild spawn so the roamer

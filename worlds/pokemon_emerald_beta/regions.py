@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Callable
 
 from BaseClasses import CollectionState, ItemClassification, Region
 
-from .data import EncounterType, data
-from .items import PokemonEmeraldItem
+from .data import PokemonSource, data
+from .items import PokemonEmeraldItem, PokemonEmeraldObtainPokemonEventItem
 from .locations import PokemonEmeraldLocation
 
 if TYPE_CHECKING:
@@ -22,10 +22,10 @@ def create_regions(world: PokemonEmeraldWorld) -> dict[str, Region]:
     """
     # Used in connect_to_map_encounters. Splits encounter categories into "subcategories" and gives them names
     # and rules so the rods can only access their specific slots. Rock smash encounters are not considered in logic.
-    encounter_categories: dict[EncounterType, list[tuple[str | None, range, Callable[[CollectionState], bool] | None]]] = {
-        EncounterType.LAND: [(None, range(0, 12), None)],
-        EncounterType.WATER: [(None, range(0, 5), None)],
-        EncounterType.FISHING: [
+    encounter_categories: dict[PokemonSource, list[tuple[str | None, range, Callable[[CollectionState], bool] | None]]] = {
+        PokemonSource.LAND: [(None, range(0, 12), None)],
+        PokemonSource.WATER: [(None, range(0, 5), None)],
+        PokemonSource.FISHING: [
             ("OLD_ROD", range(0, 2), lambda state: state.has("Old Rod", world.player)),
             ("GOOD_ROD", range(2, 5), lambda state: state.has("Good Rod", world.player)),
             ("SUPER_ROD", range(5, 10), lambda state: state.has("Super Rod", world.player)),
@@ -45,7 +45,7 @@ def create_regions(world: PokemonEmeraldWorld) -> dict[str, Region]:
         # For each of land, water, and fishing, connect the region if indicated by include_slots
         for i, (encounter_type, subcategories) in enumerate(encounter_categories.items()):
             if include_slots[i]:
-                region_name = f"{map_name}_{encounter_type.value}_ENCOUNTERS"
+                region_name = f"{map_name}_{encounter_type}_ENCOUNTERS"
 
                 # If the region hasn't been created yet, create it now
                 try:
@@ -78,11 +78,10 @@ def create_regions(world: PokemonEmeraldWorld) -> dict[str, Region]:
                                 encounter_location.access_rule = subcategory[2]
 
                             # Fill the location with an event for catching that species
-                            encounter_location.place_locked_item(PokemonEmeraldItem(
-                                f"CATCH_{data.species[species_id].name}",
-                                ItemClassification.progression_skip_balancing,
-                                None,
-                                world.player
+                            encounter_location.place_locked_item(PokemonEmeraldObtainPokemonEventItem(
+                                world.player,
+                                encounter_type,
+                                species_id,
                             ))
                             encounter_region.locations.append(encounter_location)
 
