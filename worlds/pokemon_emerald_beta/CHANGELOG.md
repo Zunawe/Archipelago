@@ -1,3 +1,28 @@
+# 3.0.0
+
+### Features
+
+- Changed `hm_requirements` option to be an option set instead of a choice.
+- Added "Surf Requires Extra Badge" to `hm_requirements` which adds Feather Badge to the requirement to use Surf.
+- New (hidden) option `custom_hm_requirements` to allow much more siginficant control over the specific requirements to
+use HMs. Read the option description in your template yaml for more info.
+- Client sends bounce packets when an encounter is triggered to enable encounter tracking.
+- Increased the number of stored player and item names for pickup messages.
+- Start inventory is now placed directly into your inventory on a new game. One stack of up to 99 is put in your bag.
+Overflow up to 999 per type of item is put in your PC.
+
+### Fixes
+
+- Fixed berry trees being capable of decaying while berrysanity is enabled.
+- Fixed berry master's wife sometimes not giving her item.
+- Fixed start inventory being limited enough that some progression items may not make it into your patch.
+- Fixed some special map states not resetting when using GO HOME.
+- Fixed Lilycove City Rival and Steven disappearing after entering the Hall of Fame.
+- Fixed death links being broken if one is received before finishing the Zigzagoon fight.
+- Fixed pokemon not receiving experience if the `match_trainer_levels` option resulted in your pokemon being level 100.
+- Fixed Registeel, Regirock, and Regice knowing Explosion in their static encounters if their movesets are vanilla.
+- Fixed one possible location for terra/marine cave being impossible to get.
+
 # 2.6.0
 
 ### Features
