@@ -196,12 +196,12 @@ class PokemonEmeraldClient(BizHawkClient):
 
         return True
 
-    async def set_auth(self, ctx: "BizHawkClientContext") -> None:
+    async def set_auth(self, ctx: BizHawkClientContext) -> None:
         import base64
         auth_raw = (await bizhawk.read(ctx.bizhawk_ctx, [(data.rom_addresses["gArchipelagoInfo"], 16, "ROM")]))[0]
         ctx.auth = base64.b64encode(auth_raw).decode("utf-8")
 
-    async def game_watcher(self, ctx: "BizHawkClientContext") -> None:
+    async def game_watcher(self, ctx: BizHawkClientContext) -> None:
         if ctx.server is None or ctx.server.socket.closed or ctx.slot_data is None:
             return
 
@@ -411,7 +411,7 @@ class PokemonEmeraldClient(BizHawkClient):
             # Exit handler and return to main loop to reconnect
             pass
 
-    async def handle_tracker_info(self, ctx: "BizHawkClientContext", guards: dict[str, tuple[int, bytes, str]]) -> None:
+    async def handle_tracker_info(self, ctx: BizHawkClientContext, guards: dict[str, tuple[int, bytes, str]]) -> None:
         # Current map
         sb1_address = int.from_bytes(guards["SAVE BLOCK 1"][1], "little")
 
@@ -463,7 +463,7 @@ class PokemonEmeraldClient(BizHawkClient):
                     },
                 }])
 
-    async def handle_death_link(self, ctx: "BizHawkClientContext", guards: dict[str, tuple[int, bytes, str]]) -> None:
+    async def handle_death_link(self, ctx: BizHawkClientContext, guards: dict[str, tuple[int, bytes, str]]) -> None:
         """
         Checks whether the player has died while connected and sends a death link if so. Queues a death link in the game
         if a new one has been received.
@@ -516,7 +516,7 @@ class PokemonEmeraldClient(BizHawkClient):
                     self.ignore_next_death_link = True
                     self.death_counter = times_whited_out
 
-    async def handle_received_items(self, ctx: "BizHawkClientContext", guards: dict[str, tuple[int, bytes, str]]) -> None:
+    async def handle_received_items(self, ctx: BizHawkClientContext, guards: dict[str, tuple[int, bytes, str]]) -> None:
         """
         Checks the index of the most recently received item and whether the item queue is full. Writes the next item
         into the game if necessary.
@@ -551,7 +551,7 @@ class PokemonEmeraldClient(BizHawkClient):
                 (received_item_address + 5, [should_display], "System Bus"),
             ])
 
-    async def handle_wonder_trade(self, ctx: "BizHawkClientContext", guards: dict[str, tuple[int, bytes, str]]) -> None:
+    async def handle_wonder_trade(self, ctx: BizHawkClientContext, guards: dict[str, tuple[int, bytes, str]]) -> None:
         """
         Read wonder trade status from save data and either send a queued pokemon to data storage or attempt to retrieve
         one from data storage and write it into the save.
@@ -612,7 +612,7 @@ class PokemonEmeraldClient(BizHawkClient):
                     # Very approximate "time since last loop", but extra delay is fine for this
                     self.wonder_trade_cooldown_timer -= int(ctx.watcher_timeout * 1000)
 
-    async def wonder_trade_acquire(self, ctx: "BizHawkClientContext", keep_trying: bool = False) -> dict | None:
+    async def wonder_trade_acquire(self, ctx: BizHawkClientContext, keep_trying: bool = False) -> dict | None:
         """
         Acquires a lock on the `pokemon_wonder_trades_{ctx.team}` key in
         datastorage. Locking the key means you have exclusive access
@@ -680,7 +680,7 @@ class PokemonEmeraldClient(BizHawkClient):
             self.wonder_trade_cooldown = 5000
             return reply
 
-    async def wonder_trade_send(self, ctx: "BizHawkClientContext", data: str) -> None:
+    async def wonder_trade_send(self, ctx: BizHawkClientContext, data: str) -> None:
         """
         Sends a wonder trade pokemon to data storage
         """
@@ -704,7 +704,7 @@ class PokemonEmeraldClient(BizHawkClient):
 
         logger.info("Wonder trade sent! We'll notify you here when a trade has been found.")
 
-    async def wonder_trade_receive(self, ctx: "BizHawkClientContext") -> str | None:
+    async def wonder_trade_receive(self, ctx: BizHawkClientContext) -> str | None:
         """
         Tries to pop a pokemon out of the wonder trades. Returns `None` if
         for some reason it can't immediately remove a compatible pokemon.
@@ -745,7 +745,7 @@ class PokemonEmeraldClient(BizHawkClient):
 
         return reply["value"][str(wonder_trade_slot)][1]
 
-    def on_package(self, ctx: "BizHawkClientContext", cmd: str, args: dict) -> None:
+    def on_package(self, ctx: BizHawkClientContext, cmd: str, args: dict) -> None:
         if cmd == "Connected":
             Utils.async_start(ctx.send_msgs([{
                 "cmd": "SetNotify",
