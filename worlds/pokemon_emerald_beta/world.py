@@ -773,6 +773,8 @@ class PokemonEmeraldWorld(World):
             "dexsanity_encounter_types",
         )
         slot_data["free_fly_location_id"] = self.free_fly_location_id
+        slot_data["terra_cave_location"] = self.get_location("TERRA_CAVE_LOCATION").item.name
+        slot_data["marine_cave_location"] = self.get_location("MARINE_CAVE_LOCATION").item.name
         slot_data["hm_requirements"] = self.hm_requirements
         slot_data["world_version"] = self.world_version
         return slot_data

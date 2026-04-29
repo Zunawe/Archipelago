@@ -10,6 +10,8 @@ use HMs. Read the option description in your template yaml for more info.
 - Increased the number of stored player and item names for pickup messages.
 - Start inventory is now placed directly into your inventory on a new game. One stack of up to 99 is put in your bag.
 Overflow up to 999 per type of item is put in your PC.
+- Added marine cave and terra cave locations to slot data for trackers, and added new event flags for players
+discovering them at the weather institute.
 
 ### Fixes
 
