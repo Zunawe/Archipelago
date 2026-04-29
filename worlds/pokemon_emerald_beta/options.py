@@ -117,17 +117,28 @@ class RandomizeBerryTrees(Toggle):
     display_name = "Randomize Berry Trees"
 
 
-class Dexsanity(OptionSet):
+class Dexsanity(Toggle):
     """
-    Adding a "caught" pokedex entry gives you an item (catching, evolving, trading, etc.). Only enabled categories are considered logical access to a species, though they might still be found elsewhere.
+    Adding a "caught" pokedex entry gives you an item (catching, evolving, trading, etc.). Only wild encounters are considered logical access to a species.
+
+    Blacklisting wild encounters removes the dexsanity location.
 
     Defeating gym leaders provides dex info, allowing you to see where on the map you can catch species you need.
 
     Each pokedex entry adds a Poke Ball, Great Ball, or Ultra Ball to the pool.
 
-    Warning: This can add a lot of locations and will slow you down significantly.
+    Warning: This adds a lot of locations and will slow you down significantly.
     """
     display_name = "Dexsanity"
+
+
+class DexsanityEncounterTypes(OptionSet):
+    """
+    Determines which Dexsanity encounter areas are in logic.
+
+    Logic will only consider access to Pokemon at these encounter types, but they may still be found elsewhere.
+    """
+    display_name = "Dexsanity Encounter Types"
     valid_keys = ["Land", "Water", "Fishing"]
     default = valid_keys.copy()
 
@@ -956,6 +967,7 @@ class PokemonEmeraldOptions(PerGameCommonOptions):
     npc_gifts: RandomizeNpcGifts
     berry_trees: RandomizeBerryTrees
     dexsanity: Dexsanity
+    dexsanity_encounter_types: DexsanityEncounterTypes
     trainersanity: Trainersanity
     item_pool_type: ItemPoolType
 

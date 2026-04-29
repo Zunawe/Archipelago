@@ -277,7 +277,7 @@ class PokemonEmeraldClient(BizHawkClient):
 
             # Read pokedex flags
             pokedex_caught_bytes = bytes(0)
-            if len(ctx.slot_data["dexsanity"]) > 0:
+            if ctx.slot_data["dexsanity"] == Toggle.option_true:
                 # Read pokedex flags
                 read_result = await bizhawk.guarded_read(
                     ctx.bizhawk_ctx,
@@ -320,7 +320,7 @@ class PokemonEmeraldClient(BizHawkClient):
                             local_found_key_items[KEY_LOCATION_FLAG_MAP[flag_id]] = True
 
             # Check pokedex
-            if len(ctx.slot_data["dexsanity"]) > 0:
+            if ctx.slot_data["dexsanity"] == Toggle.option_true:
                 for byte_i, byte in enumerate(pokedex_caught_bytes):
                     for i in range(8):
                         if byte & (1 << i) != 0:
