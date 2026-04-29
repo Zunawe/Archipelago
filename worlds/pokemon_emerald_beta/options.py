@@ -6,7 +6,7 @@ from typing import Any
 
 from BaseClasses import PlandoOptions
 from Options import (Choice, DeathLink, DefaultOnToggle, OptionSet, NamedRange, Range, Toggle, FreeText, Visibility,
-                     PerGameCommonOptions, OptionGroup, StartInventory, OptionList, OptionDict, OptionError)
+                     PerGameCommonOptions, OptionGroup, StartInventory, OptionDict, OptionError)
 from worlds.AutoWorld import World
 
 from .data import data
@@ -132,14 +132,14 @@ class Dexsanity(Toggle):
     display_name = "Dexsanity"
 
 
-class DexsanityEncounterTypes(OptionList):
+class DexsanityEncounterTypes(OptionSet):
     """
     Determines which Dexsanity encounter areas are in logic.
 
     Logic will only consider access to Pokemon at these encounter types, but they may still be found elsewhere.
     """
     display_name = "Dexsanity Encounter Types"
-    valid_keys = {"Land", "Water", "Fishing"}
+    valid_keys = ["Land", "Water", "Fishing"]
     default = valid_keys.copy()
 
 
