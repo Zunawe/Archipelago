@@ -4,258 +4,273 @@ import asyncio
 import base64
 import enum
 import json
-from typing import Any
+from typing import Any, TypeAlias
 
 
-class ConnectionStatus(enum.IntEnum):
-    NOT_CONNECTED = 1
-    TENTATIVE = 2
-    CONNECTED = 3
+Request: TypeAlias = dict[str, Any]
+Response: TypeAlias = dict[str, Any]
+
+_DOMAIN_OFFSETS = {
+    "RDRAM":      0xA000_0000,
+    "ROM":        0xB000_0000,
+    "System Bus": 0x0000_0000,
+}
+_EFFECTFUL_REQUESTS = {"WRITE", "LOCK", "UNLOCK"}
+
+
+def gdb_packet(command: str) -> str:
+    return f"+${command}#00"  # ares discards the checksum
+
+
+def gdb_read(address: int, domain: str, size: int) -> str:
+    offset_address = address + _DOMAIN_OFFSETS[domain]
+    return gdb_packet(f"m{offset_address:x},{size:x}")
+
+
+def gdb_write(address: int, domain: str, value: bytes) -> str:
+    offset_address = address + _DOMAIN_OFFSETS[domain]
+    return gdb_packet(f"M{offset_address:x},{len(value):x}:{value.hex()}")
+
+
+def gdb_set_vi_origin_watchpoint() -> str:
+    return gdb_packet("Z2,a4400004,4")
+
+
+def gdb_unset_vi_origin_watchpoint() -> str:
+    return gdb_packet("z2,a4400004,4")
+
+
+def gdb_halt() -> str:
+    return gdb_packet("?")
+
+
+def gdb_continue() -> str:
+    return gdb_packet("c")
+
+
+def preprocess_request(request: Request) -> None:
+    if request["type"] == "GUARD":
+        request["expected_data"] = base64.b64decode(request["expected_data"])
+        if len(request["expected_data"]) not in (1, 2, 4, 8):
+            raise Exception("Can only safely read 1, 2, 4, or 8 bytes at a time on ares")
+    elif request["type"] == "READ":
+        request["expected_data"] = base64.b64decode(request["expected_data"])
+        if request["size"] not in (1, 2, 4, 8):
+            raise Exception("Can only safely read 1, 2, 4, or 8 bytes at a time on ares")
+    elif request["type"] == "WRITE":
+        request["value"] = base64.b64decode(request["value"])
+        if len(request["value"]) not in (1, 2, 4, 8):
+            raise Exception("Can only safely write 1, 2, 4, or 8 bytes at a time on ares")
+
+
+class AresConnection:
+    _reader: asyncio.StreamReader
+    _writer: asyncio.StreamWriter
+    _connection_closed: bool
+    lock: asyncio.Lock
+
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        self._reader = reader
+        self._writer = writer
+        self._connection_closed = False
+        self.lock = asyncio.Lock()
+
+    async def send_and_receive(self, message: str, include_halt = False) -> str:
+        async with self.lock:
+            try:
+                if include_halt:
+                    # Send watchpoint set on V_ORIGIN, which is primarily a
+                    # reliable anchor point for consistency per frame.
+                    # Then wait for the game to halt.
+                    # Then prepend a command to remove the watchpoint.
+                    self._writer.write(gdb_set_vi_origin_watchpoint().encode("ascii"))
+                    await asyncio.wait_for(self._writer.drain(), 5)
+                    watchpoint_ack = await asyncio.wait_for(self._reader.read(30), 5)
+                    assert watchpoint_ack == b"+$OK#9a+$T05watch:a4400004;#02"
+                    message = gdb_unset_vi_origin_watchpoint() + message
+
+                self._writer.write(message.encode("ascii"))
+                await asyncio.wait_for(self._writer.drain(), 5)
+                res = await asyncio.wait_for(self._reader.read(4096), 5)
+
+                if res == b"":
+                    self._writer.close()
+                    self._connection_closed = True
+                    raise Exception("Connection to ares closed")
+
+                ret = res.decode("ascii")
+                if include_halt:
+                    # Remove the acknowledgement from unsetting the watchpoint
+                    assert ret.startswith("+$OK#9a")
+                    ret = ret[7:]
+                return ret
+            except asyncio.TimeoutError as exc:
+                self._writer.close()
+                self._connection_closed = True
+                raise Exception("Connection to ares timed out") from exc
+            except ConnectionResetError as exc:
+                self._writer.close()
+                self._connection_closed = True
+                raise Exception("Connection to ares reset") from exc
+
+    @classmethod
+    async def connect(cls, port: int) -> AresConnection | None:
+        try:
+            reader, writer = await asyncio.open_connection("localhost", port)
+            return cls(reader, writer)
+        except (TimeoutError, ConnectionRefusedError):
+            pass
+        return None
 
 
 class AresContext:
-    streams: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
-    connection_status: ConnectionStatus
-    lock: asyncio.Lock
+    _connection: AresConnection | None
+    _locked_state: bool
 
     def __init__(self) -> None:
-        self.streams = None
-        self.connection_status = ConnectionStatus.NOT_CONNECTED
-        self.lock = asyncio.Lock()
+        self._locked_state = False
+    
+    async def connect(self) -> None:
+        self._connection = await AresConnection.connect(9123)
 
-    async def _send_message(self, message: str):
-        async with self.lock:
-            if self.streams is None:
-                raise Exception("You tried to send a request before a connection to ares was made")
+    async def process_requests(self, requests: list[Request]) -> list[Response]:
+        assert self._connection is not None
 
-            try:
-                reader, writer = self.streams
-                writer.write(message.encode("utf-8") + b"\n")
-                await asyncio.wait_for(writer.drain(), 5)
+        for request in requests:
+            preprocess_request(request)
 
-                res = await asyncio.wait_for(reader.readuntil(b"#"), 5)
-                await reader.readexactly(2)
+        request_data = []
 
-                if res == b"":
-                    writer.close()
-                    self.streams = None
-                    self.connection_status = ConnectionStatus.NOT_CONNECTED
-                    raise Exception("Connection to ares closed")
+        packets = []
+        for request in requests:
+            packet = ""
+            if request["type"] == "GUARD":
+                packet = gdb_read(request["address"], request["domain"], len(request["expected_data"]))
+            elif request["type"] == "READ":
+                packet = gdb_read(request["address"], request["domain"], request["size"])
+            elif request["type"] == "WRITE":
+                packet = gdb_write(request["address"], request["domain"], request["value"])
+            packets.append(packet)
 
-                if self.connection_status == ConnectionStatus.TENTATIVE:
-                    self.connection_status = ConnectionStatus.CONNECTED
+        failed_guard_index = None
+        bounds = [0, 0]
+        while bounds[1] < len(requests):
+            in_guarded_state = False
+            send_halt = False
 
-                return res.decode("utf-8")
-            except asyncio.TimeoutError as exc:
-                writer.close()
-                self.streams = None
-                self.connection_status = ConnectionStatus.NOT_CONNECTED
-                raise Exception("Connection to ares timed out") from exc
-            except ConnectionResetError as exc:
-                writer.close()
-                self.streams = None
-                self.connection_status = ConnectionStatus.NOT_CONNECTED
-                raise Exception("Connection to ares reset") from exc
+            for i in range(bounds[0], len(requests)):
+                if requests[i]["type"] == "GUARD":
+                    in_guarded_state = True
+                elif in_guarded_state and requests[i]["type"] in _EFFECTFUL_REQUESTS:
+                    break
+                bounds[1] += 1
 
-    async def try_connect(self, port: int) -> bool:
-        try:
-            self.streams = await asyncio.open_connection("127.0.0.1", port)
-            self.connection_status = ConnectionStatus.TENTATIVE
-            return True
-        except (TimeoutError, ConnectionRefusedError):
-            pass
+            message = "".join(packets[bounds[0]:bounds[1]])
 
-        self.streams = None
-        self.connection_status = ConnectionStatus.NOT_CONNECTED
-        return False
+            num_locks = sum(
+                -1 if request["type"] == "UNLOCK" else (1 if request["type"] == "LOCK" else 0)
+                for request in requests[bounds[0]:bounds[1]]
+            )
+            # TODO: Avoid sending lock/continue for request chains of length 1? Breaks implicit lock/unlock handling
+            if not self._locked_state:
+                if bounds[0] == 0:
+                    send_halt = True  # Emulator isn't currently paused, halt for request chain
+                if bounds[1] == len(requests):
+                    message += gdb_continue()  # Emulator is supposed to be running after request chain
+                if num_locks > 0:
+                    self._locked_state = True  # Requests are triggering a lock
+            else:
+                if num_locks < 0: 
+                    self._locked_state = False  # Requests are triggering an unlock
 
+            raw_responses = iter((await self._connection.send_and_receive(message, send_halt)).split("+"))
+            next(raw_responses)  # Empty string left of the first '+'
 
-def get_ares_address(req: dict[str, Any]):
-    mapping = {
-        "RDRAM":      0xA000_0000,
-        "ROM":        0xB000_0000,
-        "System Bus": 0x0000_0000,
-    }
-    return req["address"] + mapping[req["domain"]]
+            for i, request in enumerate(requests[bounds[0]:bounds[1]]):
+                data = None
+                if request["type"] == "WRITE":
+                    acknowledge = next(raw_responses)
+                    assert acknowledge == "$OK#9a"
+                elif request["type"] in ("GUARD", "READ"):
+                    data_str = next(raw_responses)
+                    data = bytes.fromhex(data_str[1:data_str.index("#")])
+                    if failed_guard_index is None and request["type"] == "GUARD" and data != request["expected_data"]:
+                        failed_guard_index = bounds[0] + i
+                request_data.append(data)
 
+            if failed_guard_index is not None:
+                break
+            bounds[0] = bounds[1]
 
-# MAX_READ_WRITE_SIZE = {
-#     range(0x0000_0000, 0xA400_0000): 4,
-#     range(0xA400_0000, 0xB000_0000): 4,
-#     range(0xA400_0000, 0xB000_0000): float("inf"),
-# }
+        responses = []
+        for i, request in enumerate(requests):
+            if failed_guard_index is not None and i > failed_guard_index:
+                responses.append(responses[-1])
+                continue
 
-
-# def convert_read_to_messages(read: dict[str, Any]) -> str:
-#     cursor = get_ares_address(read)
-#     size = read["size"]
-#     if cursor in RCP_RANGE
-#     message = ""
-#     while size > 0:
-#         # ares n64 only guaranteed allows reads in groups of 1, 2, 4, or 8 bytes
-#         num_bytes_to_read = 1 << (min(size, 4).bit_length() - 1)
-#         message += f"+$m{hex(cursor)},{num_bytes_to_read}#00"
-#         cursor += num_bytes_to_read
-#         size -= num_bytes_to_read
-#     return message
-
-
-# def convert_write_to_messages(write: dict[str, Any]) -> str:
-#     cursor = get_ares_address(write)
-#     data = base64.b64decode(write["value"])
-#     message = ""
-#     while len(data) > 0:
-#         # ares n64 only guaranteed allows writes in groups of 1, 2, or 4 bytes
-#         num_bytes_to_write = 1 << (min(len(data), 4).bit_length() - 1)
-#         message += f"+$m{hex(cursor)},{num_bytes_to_write}:{base64.b16encode(data[:num_bytes_to_write]).decode('ascii')}#00"
-#         cursor += num_bytes_to_write
-#         data = data[num_bytes_to_write:]
-#     return message
-
-
-# async def do_reads(ctx: AresContext, read_list: list[dict[str, Any]]) -> list[bytes]:
-#     message = ""
-#     if len(read_list) == 1:
-#         message = convert_read_to_messages(read_list[0])
-#         if read_list[0]["size"] > 4:
-#             message = "+$?#00" + message + "+$c#00"
-#     else:
-#         message += "+$?#00"  # Pause
-#         message += "".join(convert_read_to_messages(r) for r in read_list)
-#         message += "+$c#00"  # Unpause
-
-#     async with ctx.lock:
-#         if ctx.streams is None:
-#             raise Exception("Not connected to ares")
-#         ctx.streams[1].write(message.encode("utf-8") + b"\n")
-#         await asyncio.wait_for(ctx.streams[1].drain(), 5)
-#         res = await asyncio.wait_for(ctx.streams[0].read(1024), 5)
-
-#     concatenated_data = base64.b16decode("".join(s[:-3] for s in res.decode("utf-8").replace("+", "").split("$")[2:]))
-#     split_data: list[bytes] = []
-
-#     i = 0
-#     cursor = 0
-#     while i < len(read_list):
-#         split_data.append(concatenated_data[cursor:cursor + read_list[i]["size"]])
-#         cursor += read_list[i]["size"]
-#         i += 1
-#     return split_data
-
-
-# async def do_writes(ctx: AresContext, write_list: list[dict[str, Any]]) -> bytes:
-#     message = ""
-#     if len(write_list) == 1:
-#         value = base64.b64decode(write_list[0]["value"])
-#         message = convert_write_to_messages(write_list[0])
-#         if len(value) > 4:
-#             message = "+$?#00" + message + "+$c#00"
-#     else:
-#         message += "+$?#00"  # Pause
-#         message += "".join(convert_write_to_messages(w) for w in write_list)
-#         message += "+$c#00"  # Unpause
-
-#     async with ctx.lock:
-#         if ctx.streams is None:
-#             raise Exception("Not connected to ares")
-#         ctx.streams[1].write(message.encode("utf-8") + b"\n")
-#         await asyncio.wait_for(ctx.streams[1].drain(), 5)
-#         res = await asyncio.wait_for(ctx.streams[0].read(1024), 5)
-#         print(res)
-#         raise NotImplementedError("need to validate/return")
-
-#     # return base64.b16decode("".join(s[:-3] for s in res.decode("utf-8").replace("+", "").split("$")[2:]))
-
-
-async def process_requests(requests: list[dict[str, Any]], ares_ctx: AresContext) -> list[dict[str, Any]]:
-    # Pure reads
-    # if all(req["type"] == "READ" for req in requests):
-    #     data = await do_reads(ares_ctx, requests)
-    #     return [{
-    #         "type": "READ_RESPONSE",
-    #         "value": base64.b64encode(d).decode("ascii"),
-    #     } for d in data]
-
-    # # Pure writes
-    # if all(req["type"] == "WRITE" for req in requests):
-    #     data = await do_writes(ares_ctx, requests)
-    #     return [{
-    #         "type": "WRITE_RESPONSE",
-    #     } for _ in data]
-
-    responses: list[dict[str, Any]] = []
-    for req in requests:
-        if req["type"] == "PING":
-            responses.append({
-                "type": "PONG",
-            })
-        elif req["type"] == "SYSTEM":
-            responses.append({
-                "type": "SYSTEM_RESPONSE",
-                "value": "N64",
-            })
-        elif req["type"] == "PREFERRED_CORES":
-            responses.append({
-                "type": "PREFERRED_CORES_RESPONSE",
-                "value": {},
-            })
-        elif req["type"] == "HASH":
-            # TODO: Maybe read ROM header
-            responses.append({
-                "type": "HASH_RESPONSE",
-                "value": "1",
-            })
-        elif req["type"] == "MEMORY_SIZE":
-            # TODO: Implement/hardcode
-            responses.append({
-                "type": "MEMORY_SIZE_RESPONSE",
-                "value": "1",
-            })
-        elif req["type"] == "GUARD":
-            # TODO: Implement
-            responses.append({
-                "type": "GUARD_RESPONSE",
-                "value": True,
-                "address": req["address"],
-            })
-        elif req["type"] == "LOCK":
-            responses.append({
-                "type": "LOCKED",
-            })
-        elif req["type"] == "UNLOCK":
-            responses.append({
-                "type": "UNLOCKED",
-            })
-        elif req["type"] == "READ":
-            message = f"+$m{hex(get_ares_address(req))[2:]},{hex(((req['size'] // 4) + 1) * 4)[2:]}#00"
-            print(message)
-            ares_response = await ares_ctx._send_message(message)
-            print(ares_response)
-            responses.append({
-                "type": "READ_RESPONSE",
-                # "value": base64.b64encode((await do_reads(ares_ctx, [req]))[0]).decode("ascii"),
-            })
-        elif req["type"] == "WRITE":
-            # await do_writes(ares_ctx, [req])
-            responses.append({
-                "type": "WRITE_RESPONSE",
-            })
-        elif req["type"] == "DISPLAY_MESSAGE":
-            responses.append({
-                "type": "DISPLAY_MESSAGE_RESPONSE",
-            })
-        elif req["type"] == "SET_MESSAGE_INTERVAL":
-            responses.append({
-                "type": "SET_MESSAGE_INTERVAL_RESPONSE",
-            })
-    return responses
+            if request["type"] == "PING":
+                responses.append({
+                    "type": "PONG",
+                })
+            elif request["type"] == "SYSTEM":
+                responses.append({
+                    "type": "SYSTEM_RESPONSE",
+                    "value": "N64",
+                })
+            elif request["type"] == "PREFERRED_CORES":
+                responses.append({
+                    "type": "PREFERRED_CORES_RESPONSE",
+                    "value": {},
+                })
+            elif request["type"] == "HASH":
+                # TODO: Maybe read ROM header
+                responses.append({
+                    "type": "HASH_RESPONSE",
+                    "value": "1",
+                })
+            elif request["type"] == "MEMORY_SIZE":
+                # TODO: Implement/hardcode
+                responses.append({
+                    "type": "MEMORY_SIZE_RESPONSE",
+                    "value": "1",
+                })
+            elif request["type"] == "GUARD":
+                responses.append({
+                    "type": "GUARD_RESPONSE",
+                    "value": request_data[i] == request["expected_data"],
+                    "address": request["address"],
+                })
+            elif request["type"] == "LOCK":
+                responses.append({
+                    "type": "LOCKED",
+                })
+            elif request["type"] == "UNLOCK":
+                responses.append({
+                    "type": "UNLOCKED",
+                })
+            elif request["type"] == "READ":
+                responses.append({
+                    "type": "READ_RESPONSE",
+                    "value": base64.b64encode(request_data[i]).decode("ascii"),
+                })
+            elif request["type"] == "WRITE":
+                responses.append({
+                    "type": "WRITE_RESPONSE",
+                })
+            elif request["type"] == "DISPLAY_MESSAGE":
+                responses.append({
+                    "type": "DISPLAY_MESSAGE_RESPONSE",
+                })
+            elif request["type"] == "SET_MESSAGE_INTERVAL":
+                responses.append({
+                    "type": "SET_MESSAGE_INTERVAL_RESPONSE",
+                })
+        return responses
 
 
 async def main():
     ares_ctx = AresContext()
-    if not await ares_ctx.try_connect(9123):
-        return
-    print("Connection to ares successful")
+    await ares_ctx.connect()
 
     async def on_client_connect(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         try:
@@ -274,7 +289,7 @@ async def main():
                     await asyncio.wait_for(writer.drain(), 5)
                     continue
 
-                responses = await process_requests(json.loads(req_str), ares_ctx)
+                responses = await ares_ctx.process_requests(json.loads(req_str))
                 writer.write(json.dumps(responses).encode("utf-8") + b"\n")
                 await asyncio.wait_for(writer.drain(), 5)
         finally:

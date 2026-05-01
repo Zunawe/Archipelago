@@ -17,12 +17,13 @@ class DummyWorld(World):
 
 
 class DummyClient(BizHawkClient):
-    game = "Dummy"
+    game = "Dummy World"
     system = "N64"
 
     async def validate_rom(self, ctx: BizHawkClientContext) -> bool:
         return True
 
     async def game_watcher(self, ctx: BizHawkClientContext) -> None:
-        print(await bizhawk.read(ctx.bizhawk_ctx, [(0xB0000020, 9, "System Bus")]))
+        print(await bizhawk.read(ctx.bizhawk_ctx, [(0xB0000020, 4, "System Bus")]))
+        print(await bizhawk.read(ctx.bizhawk_ctx, [(0x00000024, 4, "ROM")]))
         pass
