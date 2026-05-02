@@ -339,9 +339,19 @@ async def main():
             writer.close()
             await writer.wait_closed()
 
-    server = await asyncio.start_server(on_client_connect, "localhost", 43055)
+    server = None
+    for port in range(43055, 43060):
+        try:
+            server = await asyncio.start_server(on_client_connect, "localhost", port)
+            break
+        except OSError:
+            pass
+    if server is None:
+        logger.info("All BizHawk Client ports are currently in use")
+        return
+
     async with server:
-        logger.info("Waiting for client to connect")
+        logger.info(f"Server started on port {port}. Waiting for client to connect.")
         await server.serve_forever()
 
 
