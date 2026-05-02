@@ -2,14 +2,18 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import enum
 import json
+import logging
 from typing import Any, TypeAlias
 
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 Request: TypeAlias = dict[str, Any]
 Response: TypeAlias = dict[str, Any]
 
+ARES_GDB_PORT = 9123
 _DOMAIN_OFFSETS = {
     "RDRAM":      0xA000_0000,
     "ROM":        0xB000_0000,
@@ -54,13 +58,22 @@ def preprocess_request(request: Request) -> None:
         if len(request["expected_data"]) not in (1, 2, 4, 8):
             raise Exception("Can only safely read 1, 2, 4, or 8 bytes at a time on ares")
     elif request["type"] == "READ":
-        request["expected_data"] = base64.b64decode(request["expected_data"])
         if request["size"] not in (1, 2, 4, 8):
             raise Exception("Can only safely read 1, 2, 4, or 8 bytes at a time on ares")
     elif request["type"] == "WRITE":
         request["value"] = base64.b64decode(request["value"])
         if len(request["value"]) not in (1, 2, 4, 8):
             raise Exception("Can only safely write 1, 2, 4, or 8 bytes at a time on ares")
+
+
+def create_error_response(exc: Exception) -> Response:
+    return {
+        "type": "ERROR",
+        "err": str(exc)
+    }
+
+class AresConnectionError(Exception):
+    pass
 
 
 class AresConnection:
@@ -84,34 +97,36 @@ class AresConnection:
                     # Then wait for the game to halt.
                     # Then prepend a command to remove the watchpoint.
                     self._writer.write(gdb_set_vi_origin_watchpoint().encode("ascii"))
-                    await asyncio.wait_for(self._writer.drain(), 5)
-                    watchpoint_ack = await asyncio.wait_for(self._reader.read(30), 5)
-                    assert watchpoint_ack == b"+$OK#9a+$T05watch:a4400004;#02"
+                    async with asyncio.timeout(5):
+                        await self._writer.drain()
+                        await self._reader.readuntil(b"#")  # Set watchpoint ack
+                        await self._reader.read(2)
+                        await self._reader.readuntil(b"#")  # Watchpoint hit
+                        await self._reader.read(2)
                     message = gdb_unset_vi_origin_watchpoint() + message
 
                 self._writer.write(message.encode("ascii"))
                 await asyncio.wait_for(self._writer.drain(), 5)
-                res = await asyncio.wait_for(self._reader.read(4096), 5)
+                response = (await asyncio.wait_for(self._reader.read(4096), 5)).decode("ascii")
 
-                if res == b"":
+                if response == "":
                     self._writer.close()
                     self._connection_closed = True
-                    raise Exception("Connection to ares closed")
+                    raise AresConnectionError("Connection to ares closed")
 
-                ret = res.decode("ascii")
                 if include_halt:
                     # Remove the acknowledgement from unsetting the watchpoint
-                    assert ret.startswith("+$OK#9a")
-                    ret = ret[7:]
-                return ret
+                    assert response.startswith("+$OK#9a")
+                    response = response[7:]
+                return response
             except asyncio.TimeoutError as exc:
                 self._writer.close()
                 self._connection_closed = True
-                raise Exception("Connection to ares timed out") from exc
+                raise AresConnectionError("Connection to ares timed out") from exc
             except ConnectionResetError as exc:
                 self._writer.close()
                 self._connection_closed = True
-                raise Exception("Connection to ares reset") from exc
+                raise AresConnectionError("Connection to ares reset") from exc
 
     @classmethod
     async def connect(cls, port: int) -> AresConnection | None:
@@ -122,22 +137,34 @@ class AresConnection:
             pass
         return None
 
+    def is_closed(self):
+        return self._connection_closed
+
 
 class AresContext:
     _connection: AresConnection | None
     _locked_state: bool
 
     def __init__(self) -> None:
+        self._connection = None
         self._locked_state = False
     
-    async def connect(self) -> None:
-        self._connection = await AresConnection.connect(9123)
+    async def connect(self) -> bool:
+        self._connection = await AresConnection.connect(ARES_GDB_PORT)
+        return self._connection is not None
+    
+    def is_connected(self) -> bool:
+        return self._connection is not None and not self._connection.is_closed()
 
     async def process_requests(self, requests: list[Request]) -> list[Response]:
         assert self._connection is not None
+        assert self.is_connected()
 
         for request in requests:
-            preprocess_request(request)
+            try:
+                preprocess_request(request)
+            except Exception as exc:
+                return [create_error_response(exc)]
 
         request_data = []
 
@@ -183,7 +210,11 @@ class AresContext:
                 if num_locks < 0: 
                     self._locked_state = False  # Requests are triggering an unlock
 
-            raw_responses = iter((await self._connection.send_and_receive(message, send_halt)).split("+"))
+            try:
+                raw_responses = iter((await self._connection.send_and_receive(message, send_halt)).split("+"))
+            except AresConnectionError as exc:
+                logger.info(f"Lost connection to ares: {exc}")
+                return [create_error_response(exc)]
             next(raw_responses)  # Empty string left of the first '+'
 
             for i, request in enumerate(requests[bounds[0]:bounds[1]]):
@@ -270,9 +301,16 @@ class AresContext:
 
 async def main():
     ares_ctx = AresContext()
-    await ares_ctx.connect()
+
+    async def check_ares_connection():
+        while not ares_ctx.is_connected():
+            logger.info("Trying to connect to ares")
+            await asyncio.wait_for(ares_ctx.connect(), 5)
+            if ares_ctx.is_connected():
+                logger.info("Connected to ares")
 
     async def on_client_connect(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        logger.info("Client connected")
         try:
             while True:
                 try:
@@ -289,15 +327,21 @@ async def main():
                     await asyncio.wait_for(writer.drain(), 5)
                     continue
 
+                await check_ares_connection()
+
                 responses = await ares_ctx.process_requests(json.loads(req_str))
                 writer.write(json.dumps(responses).encode("utf-8") + b"\n")
                 await asyncio.wait_for(writer.drain(), 5)
+        except (ConnectionResetError, asyncio.TimeoutError) as exc:
+            logger.warning(f"Lost connection to BizHawk Client: {exc}")
         finally:
+            logger.info("Client disconnected")
             writer.close()
             await writer.wait_closed()
 
     server = await asyncio.start_server(on_client_connect, "localhost", 43055)
     async with server:
+        logger.info("Waiting for client to connect")
         await server.serve_forever()
 
 

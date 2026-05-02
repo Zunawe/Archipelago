@@ -24,6 +24,6 @@ class DummyClient(BizHawkClient):
         return True
 
     async def game_watcher(self, ctx: BizHawkClientContext) -> None:
-        print(await bizhawk.read(ctx.bizhawk_ctx, [(0xB0000020, 4, "System Bus")]))
+        print(await bizhawk.read(ctx.bizhawk_ctx, [(0xB0000020, 5, "System Bus")]))
         print(await bizhawk.read(ctx.bizhawk_ctx, [(0x00000024, 4, "ROM")]))
         pass
